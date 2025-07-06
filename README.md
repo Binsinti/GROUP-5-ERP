@@ -1,2 +1,3 @@
 # GROUP-5-ERP
-sometimes prang minsannnnnnnnnnnnn
+
+wag nyo lagay sa main if may gagawin kaung file thx may ibang branch namn
