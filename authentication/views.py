@@ -30,19 +30,10 @@ def register_view(request):
         return redirect('home')
     return render(request, 'authentication/register.html', {'form': form})
 
-
-def dashboard_view(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-    return render(request, 'authentication/dashboard.html')
-
 def logout_view(request):
     if request.user.is_authenticated:
         logout(request)
     return redirect('login')
-
-def finance_view(request):
-    return render(request, 'authentication/finance.html')
 
 def home_view(request):
     return render(request, 'authentication/home.html')

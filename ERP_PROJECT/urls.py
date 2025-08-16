@@ -21,5 +21,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('authentication.urls')),  # Include our new app's URLs
+    path('', include('authentication.urls')),
+    path('dashboard/', include('dashboard.urls')),
 ]
