@@ -1,0 +1,164 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lite Work Inbox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .sidebar-item-active {
+            background-color: #3498db;
+            color: white;
+        }
+        .message-card:hover {
+            background-color: #f0f4f7;
+        }
+    </style>
+</head>
+<body class="bg-[#ecf0f1] text-[#2c3e50] p-5">
+
+    <div class="flex space-x-5 h-screen">
+        <div class="w-64 bg-[#2c3e50] text-white p-5 rounded-3xl flex flex-col items-center">
+            <div class="flex items-center mb-10">
+                  <img src="{% static 'lite_work_logo.png' %}" alt="Lite Work Logo" class="w-30 mr-2">
+            </div>
+            <nav class="w-full">
+                <a href="{% url 'dashboard' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-home mr-4 text-xl"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'finance' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-file-invoice-dollar mr-4 text-xl"></i>
+                    <span>Finance and Billing</span>
+                </a>
+                <a href="{% url 'dashboard' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-users mr-4 text-xl"></i>
+                    <span>Clients</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-box mr-4 text-xl"></i>
+                    <span>Products</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-clipboard-list mr-4 text-xl"></i>
+                    <span>Activity Log</span>
+                </a>
+                <a href="{% url 'inbox' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300 sidebar-item-active">
+                    <i class="fas fa-inbox mr-4 text-xl"></i>
+                    <span>Inbox</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-cogs mr-4 text-xl"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="flex-grow flex flex-col space-y-5">
+            <header class="flex justify-end items-center space-x-4">
+                <i class="fas fa-bell text-2xl text-[#2c3e50] cursor-pointer"></i>
+                <i class="fas fa-user-circle text-2xl text-[#2c3e50] cursor-pointer"></i>
+                <i class="fas fa-cog text-2xl text-[#2c3e50] cursor-pointer"></i>
+            </header>
+
+            <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="bg-white p-5 rounded-xl shadow-md flex flex-col h-full md:col-span-1">
+                    <div class="relative mb-4">
+                        <input type="text" placeholder="Search Client" class="w-full pl-4 pr-10 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <div class="flex-grow overflow-y-auto space-y-2">
+                        <div class="bg-gray-100 p-4 rounded-xl flex items-center space-x-4 cursor-pointer message-card">
+                            <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl text-gray-600">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">John Doe</h4>
+                                <p class="text-sm text-gray-500">Company address or Company position (if person name)</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-gray-200 rounded-full"></div>
+                            <div class="flex-grow">
+                                <div class="w-3/4 h-4 bg-gray-200 rounded mb-1"></div>
+                                <div class="w-full h-4 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-gray-200 rounded-full"></div>
+                            <div class="flex-grow">
+                                <div class="w-3/4 h-4 bg-gray-200 rounded mb-1"></div>
+                                <div class="w-full h-4 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-md flex flex-col h-full md:col-span-2 border border-[#9b59b6]">
+                    <div class="flex-grow overflow-y-auto space-y-4 pr-2">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-gray-300 rounded-full flex-shrink-0 flex items-center justify-center text-xl text-gray-600">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-center mb-1">
+                                    <h5 class="font-semibold">JOHN DOE</h5>
+                                    <span class="text-xs text-gray-500">Aug 14, 2025 at 10:57 PM</span>
+                                </div>
+                                <div class="bg-gray-100 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-700">Greetings! This is John Doe and Lorem ipsum dolor sit amet, con...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-white rounded-full flex-shrink-0 flex items-center justify-center text-xl text-gray-600">
+                                <i class="fas fa-reply rotate-180"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-center mb-1">
+                                    <h5 class="font-semibold">USER</h5>
+                                    <span class="text-xs text-gray-500">Aug 14, 2025 at 10:57 PM</span>
+                                </div>
+                                <div class="bg-blue-100 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-700">Hi! Thank for the info Lorem ipsum dolor sit amet, consectetu...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-gray-300 rounded-full flex-shrink-0 flex items-center justify-center text-xl text-gray-600">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-center mb-1">
+                                    <h5 class="font-semibold">JOHN DOE</h5>
+                                    <span class="text-xs text-gray-500">Aug 14, 2025 at 10:57 PM</span>
+                                </div>
+                                <div class="bg-gray-100 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-700">Hey User,</p>
+                                    <p class="text-sm text-gray-700 mt-2">Thank you for the feedback. We would also want to add the following requests Lorem ipsum dolor sit amet, consectetur adipiscing elit....</p>
+                                    <p class="text-sm text-gray-700 mt-2">Regards,</p>
+                                    <p class="text-sm text-gray-700">John Doe</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-4">
+                        <button class="bg-blue-500 text-white py-2 px-6 rounded-full hover:bg-blue-600 transition-colors duration-300">Reply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

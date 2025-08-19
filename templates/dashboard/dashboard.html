@@ -1,0 +1,189 @@
+
+{%  load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lite Work Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .sidebar-item-active {
+            background-color: #3498db;
+            color: white;
+        }
+        .calendar-day-selected {
+            background-color: #3498db;
+            color: white;
+            border-radius: 50%;
+        }
+        .calendar-day-today {
+            border: 2px solid #3498db;
+            color: #3498db;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-[#ecf0f1] text-[#2c3e50] p-5">
+
+    <div class="flex space-x-5 h-screen">
+        <div class="w-64 bg-[#2c3e50] text-white p-5 rounded-3xl flex flex-col items-center">
+            <div class="flex items-center mb-10">
+                <img src="{% static 'lite_work_logo.png' %}" alt="Lite Work Logo" class="w-30 mr-2">
+            </div>
+            <nav class="w-full">
+                <a href="{% url 'finance' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300 sidebar-item-active">
+                    <i class="fas fa-home mr-4 text-xl"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'finance' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-file-invoice-dollar mr-4 text-xl"></i>
+                    <span>Finance and Billing</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-users mr-4 text-xl"></i>
+                    <span>Clients</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-box mr-4 text-xl"></i>
+                    <span>Products</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-clipboard-list mr-4 text-xl"></i>
+                    <span>Activity Log</span>
+                </a>
+                <a href="{% url 'inbox' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-inbox mr-4 text-xl"></i>
+                    <span>Inbox</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-cogs mr-4 text-xl"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="flex-grow flex flex-col space-y-5">
+            <header class="flex justify-end items-center space-x-4">
+                <i class="fas fa-bell text-2xl text-[#2c3e50] cursor-pointer"></i>
+                <i class="fas fa-user-circle text-2xl text-[#2c3e50] cursor-pointer"></i>
+                <i class="fas fa-cog text-2xl text-[#2c3e50] cursor-pointer"></i>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 h-full">
+                <div class="lg:col-span-2 flex flex-col space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="bg-white p-5 rounded-xl shadow-md flex flex-col items-center text-center">
+                            <i class="fas fa-wallet text-3xl text-[#3498db] mb-2"></i>
+                            <h3 class="text-lg font-semibold">TOTAL SALES</h3>
+                            <p class="text-2xl font-bold">₱ 120,000</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-md flex flex-col items-center text-center">
+                            <i class="fas fa-shopping-cart text-3xl text-[#3498db] mb-2"></i>
+                            <h3 class="text-lg font-semibold">TOTAL SOLD</h3>
+                            <p class="text-2xl font-bold">52</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-md flex-grow">
+                        <h3 class="text-lg font-semibold mb-4">Top Item Sold Today</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="py-3 px-2 text-sm font-medium text-gray-500">Item No.</th>
+                                        <th class="py-3 px-2 text-sm font-medium text-gray-500">Product</th>
+                                        <th class="py-3 px-2 text-sm font-medium text-gray-500">Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-purple-400">
+                                        <td class="py-3 px-2">K7F9L2</td>
+                                        <td class="py-3 px-2">Item 04</td>
+                                        <td class="py-3 px-2">12</td>
+                                    </tr>
+                                    <tr class="border-b border-teal-400">
+                                        <td class="py-3 px-2">8Q4ZJ6</td>
+                                        <td class="py-3 px-2">Item 16</td>
+                                        <td class="py-3 px-2">09</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-3 px-2">W5B3P9</td>
+                                        <td class="py-3 px-2">Item 02</td>
+                                        <td class="py-3 px-2">07</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-1 bg-white p-5 rounded-xl shadow-md flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <i class="fas fa-caret-left text-2xl text-gray-400 cursor-pointer"></i>
+                        <h4 class="text-lg font-semibold">August 2025</h4>
+                        <i class="fas fa-caret-right text-2xl text-gray-400 cursor-pointer"></i>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                        <div class="text-gray-500 font-semibold">Su</div>
+                        <div class="text-gray-500 font-semibold">Mo</div>
+                        <div class="text-gray-500 font-semibold">Tu</div>
+                        <div class="text-gray-500 font-semibold">We</div>
+                        <div class="text-gray-500 font-semibold">Th</div>
+                        <div class="text-gray-500 font-semibold">Fr</div>
+                        <div class="text-gray-500 font-semibold">Sa</div>
+                        
+                        <div class="py-2 text-gray-400">1</div>
+                        <div class="py-2 text-gray-400">2</div>
+                        <div class="py-2 text-gray-400">3</div>
+                        <div class="py-2 text-gray-400">4</div>
+                        <div class="py-2 text-gray-400">5</div>
+                        <div class="py-2 text-gray-400">6</div>
+                        <div class="py-2 text-gray-400">7</div>
+                        <div class="py-2">8</div>
+                        <div class="py-2">9</div>
+                        <div class="py-2">10</div>
+                        <div class="py-2">11</div>
+                        <div class="py-2">12</div>
+                        <div class="py-2">13</div>
+                        <div class="py-2">14</div>
+                        <div class="py-2 calendar-day-selected w-8 h-8 flex items-center justify-center mx-auto">15</div>
+                        <div class="py-2">16</div>
+                        <div class="py-2">17</div>
+                        <div class="py-2">18</div>
+                        <div class="py-2">19</div>
+                        <div class="py-2">20</div>
+                        <div class="py-2">21</div>
+                        <div class="py-2">22</div>
+                        <div class="py-2">23</div>
+                        <div class="py-2">24</div>
+                        <div class="py-2">25</div>
+                        <div class="py-2">26</div>
+                        <div class="py-2">27</div>
+                        <div class="py-2">28</div>
+                        <div class="py-2">29</div>
+                        <div class="py-2">30</div>
+                        <div class="py-2">31</div>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <h4 class="font-semibold mb-2">Scheduled</h4>
+                        <div class="text-sm text-gray-500">
+                            No events scheduled.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

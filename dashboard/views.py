@@ -5,10 +5,18 @@ from django.shortcuts import render, redirect
 def dashboard_view(request):
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'authentication/dashboard.html')
+    return render(request, 'dashboard/dashboard.html')
 
 def finance_view(request):
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'authentication/finance.html')
+    return render(request, 'dashboard/finance.html')
+
+def inbox_view(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    return render(request, 'dashboard/inbox.html')
+
+
+
 
