@@ -17,6 +17,11 @@ def inbox_view(request):
         return redirect('login')
     return render(request, 'dashboard/inbox.html')
 
+def products_view(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    return render(request, 'dashboard/products.html')
+
 
 
 
