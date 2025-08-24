@@ -1,0 +1,178 @@
+
+{%  load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lite Work - Clients</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .sidebar-item-active {
+            background-color: #d1e2f6;
+            color: #3498db;
+        }
+        .sidebar-item-active i, .sidebar-item-active span {
+            color: #3498db;
+        }
+    </style>
+</head>
+<body class="bg-[#f2f7fa] text-[#2c3e50] p-5">
+
+    <div class="flex space-x-5 h-screen">
+        <div class="w-64 bg-white p-5 rounded-3xl flex flex-col">
+            <div class="flex items-center mb-10">
+                <img src="{% static 'LW.png' %}" alt="Lite Work Logo" class="w-full">
+            </div>
+            <nav class="w-full">
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 text-[#2c3e50] hover:bg-[#d1e2f6] transition-colors duration-300">
+                    <i class="fas fa-home mr-4 text-xl"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 text-[#2c3e50] hover:bg-[#d1e2f6] transition-colors duration-300">
+                    <i class="fas fa-file-invoice-dollar mr-4 text-xl"></i>
+                    <span>Finance and Billing</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 text-[#2c3e50] hover:bg-[#d1e2f6] transition-colors duration-300 sidebar-item-active">
+                    <i class="fas fa-users mr-4 text-xl"></i>
+                    <span>Clients</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 text-[#2c3e50] hover:bg-[#d1e2f6] transition-colors duration-300">
+                    <i class="fas fa-box mr-4 text-xl"></i>
+                    <span>Products</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 text-[#2c3e50] hover:bg-[#d1e2f6] transition-colors duration-300">
+                    <i class="fas fa-clipboard-list mr-4 text-xl"></i>
+                    <span>Activity Log</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 text-[#2c3e50] hover:bg-[#d1e2f6] transition-colors duration-300">
+                    <i class="fas fa-inbox mr-4 text-xl"></i>
+                    <span>Inbox</span>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-lg mb-2 text-[#2c3e50] hover:bg-[#d1e2f6] transition-colors duration-300">
+                    <i class="fas fa-cogs mr-4 text-xl"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="flex-grow flex flex-col space-y-5">
+            <header class="flex justify-end items-center space-x-4">
+                <i class="fas fa-bell text-2xl text-[#2c3e50] cursor-pointer bg-white p-3 rounded-full"></i>
+                <i class="fas fa-user-circle text-2xl text-[#2c3e50] cursor-pointer bg-white p-3 rounded-full"></i>
+                <i class="fas fa-cog text-2xl text-[#2c3e50] cursor-pointer bg-white p-3 rounded-full"></i>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 h-full">
+                <div class="lg:col-span-1 flex flex-col space-y-5">
+                    <div class="bg-white p-3 rounded-full shadow-sm flex items-center">
+                        <input type="text" placeholder="Search Client" class="flex-grow bg-transparent outline-none px-2 text-sm">
+                        <i class="fas fa-search text-xl text-white bg-[#3498db] p-2 rounded-full cursor-pointer"></i>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-md flex items-center space-x-4 cursor-pointer">
+                        <div class="w-12 h-12 bg-[#ecf0f1] rounded-full flex items-center justify-center text-[#95a5a6]">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="font-semibold text-sm">John Doe</h4>
+                            <p class="text-xs text-gray-500">Company address or Company position...</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-md flex items-center space-x-4 opacity-50">
+                        <div class="w-12 h-12 bg-[#ecf0f1] rounded-full flex items-center justify-center text-[#95a5a6]">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="font-semibold text-sm">Jane Smith</h4>
+                            <p class="text-xs text-gray-500">Another company address or position...</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-md flex items-center space-x-4 opacity-50">
+                        <div class="w-12 h-12 bg-[#ecf0f1] rounded-full flex items-center justify-center text-[#95a5a6]">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="font-semibold text-sm">Peter Jones</h4>
+                            <p class="text-xs text-gray-500">A third company address or position...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 flex flex-col space-y-5">
+                    <div class="bg-white p-6 rounded-xl shadow-md flex items-start space-x-6">
+                        <div class="flex flex-col items-center">
+                            <div class="w-24 h-24 bg-[#ecf0f1] rounded-full flex items-center justify-center mb-2">
+                                <img src="{% static 'pfp.png' %}" alt="Profile Picture" class="w-20 h-20 rounded-full object-cover">
+                            </div>
+                            <p class="font-semibold text-sm">John Doe</p>
+                        </div>
+                        <div class="flex-grow">
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                <div class="font-semibold">Email</div>
+                                <div>client@gmail.com</div>
+                                <div class="font-semibold">Contact</div>
+                                <div>09999999999</div>
+                                <div class="font-semibold">Address</div>
+                                <div>Fil-Am Friendship ...</div>
+                                <div class="font-semibold">About</div>
+                                <div class="col-span-1">Lorem ipsum dolor sit amet, consectetur adipiscing elit...</div>
+                            </div>
+                        </div>
+                        <div class="bg-[#eaf4fd] px-4 py-2 rounded-full text-[#3498db] font-semibold cursor-pointer hidden lg:block">Email</div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-md flex-grow">
+                        <div class="flex items-center mb-4 text-gray-500 font-semibold">
+                            <span class="mr-6 border-b-2 border-[#3498db] text-[#3498db] pb-2">Invoice</span>
+                            <span class="mr-6">Media and Files</span>
+                            <span class="bg-[#eaf4fd] px-4 py-2 rounded-full text-[#3498db] font-semibold cursor-pointer lg:hidden ml-auto">Email</span>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-4 p-3 bg-[#ecf0f1] rounded-xl">
+                                <i class="fas fa-file-invoice-dollar text-2xl text-gray-400"></i>
+                                <div class="flex-grow">
+                                    <p class="font-semibold text-sm">Invoice-01.pdf</p>
+                                    <p class="text-xs text-gray-500">2023-10-27 | 150 KB</p>
+                                </div>
+                                <i class="fas fa-download text-lg text-gray-400 cursor-pointer"></i>
+                            </div>
+                            <div class="flex items-center space-x-4 p-3 bg-[#ecf0f1] rounded-xl">
+                                <i class="fas fa-file-alt text-2xl text-gray-400"></i>
+                                <div class="flex-grow">
+                                    <p class="font-semibold text-sm">Project Proposal.docx</p>
+                                    <p class="text-xs text-gray-500">2023-10-25 | 2.1 MB</p>
+                                </div>
+                                <i class="fas fa-download text-lg text-gray-400 cursor-pointer"></i>
+                            </div>
+                            <div class="flex items-center space-x-4 p-3 bg-[#ecf0f1] rounded-xl">
+                                <img src="{% static 'doggy.jpg' %}" alt="Dog" class="w-8 h-8 rounded-md object-cover">
+                                <div class="flex-grow">
+                                    <p class="font-semibold text-sm">Doggy pic.jpeg</p>
+                                    <p class="text-xs text-gray-500">2023-10-20 | 36.5 KB</p>
+                                </div>
+                                <i class="fas fa-download text-lg text-gray-400 cursor-pointer"></i>
+                            </div>
+                            <div class="flex items-center space-x-4 p-3 bg-[#ecf0f1] rounded-xl">
+                                <i class="fas fa-folder text-2xl text-gray-400"></i>
+                                <div class="flex-grow">
+                                    <p class="font-semibold text-sm">List.docx</p>
+                                    <p class="text-xs text-gray-500">2023-10-18 | 65.2 KB</p>
+                                </div>
+                                <i class="fas fa-download text-lg text-gray-400 cursor-pointer"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
