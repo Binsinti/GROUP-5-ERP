@@ -1,10 +1,62 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AHAHHAHA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .sidebar-item-active {
+            background-color: #3498db;
+            color: white;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-[#f2f7fa] text-[#2c3e50] p-5">
+
+      <div class="flex space-x-5 h-screen">
+        <div class="w-64 bg-[#2c3e50] text-white p-5 rounded-3xl flex flex-col items-center">
+            <div class="flex items-center mb-10">
+                <img src="{% static 'LW.png' %}" alt="Lite Work Logo" class="w-30 mr-2">
+            </div>
+            <nav class="w-full">
+                <a href="{% url 'dashboard' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300 ">
+                    <i class="fas fa-home mr-4 text-xl"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'finance' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-file-invoice-dollar mr-4 text-xl"></i>
+                    <span>Finance and Billing</span>
+                </a>
+                <a href="{% url 'clients' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300 sidebar-item-active">
+                    <i class="fas fa-users mr-4 text-xl"></i>
+                    <span>Clients</span>
+                </a>
+                <a href="{% url 'products' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-box mr-4 text-xl"></i>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'activity' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-clipboard-list mr-4 text-xl"></i>
+                    <span>Activity Log</span>
+                </a>
+                <a href="{% url 'inbox' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-inbox mr-4 text-xl"></i>
+                    <span>Inbox</span>
+                </a>
+                <a href="{% url 'settings' %}" class="flex items-center p-3 rounded-lg mb-2 hover:bg-[#3498db] hover:text-white transition-colors duration-300">
+                    <i class="fas fa-cogs mr-4 text-xl"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </div>
+    </div>
 
 </body>
 </html>
