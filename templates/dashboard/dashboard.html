@@ -29,9 +29,11 @@
             border-radius: 50%;
         }
     </style>
-</head>
-<body class="bg-[#ecf0f1] text-[#2c3e50] p-5">
-
+        </head>
+        <body class="bg-[#ecf0f1] text-[#2c3e50] p-5">
+             <button id="theme-toggle" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
+          🌙 Dark Mode
+        </button>
     <div class="flex space-x-5 h-screen">
         <div class="w-64 bg-[#2c3e50] text-white p-5 rounded-3xl flex flex-col items-center">
             <div class="flex items-center mb-10">
@@ -82,12 +84,12 @@
                         <div class="bg-white p-5 rounded-xl shadow-md flex flex-col items-center text-center">
                             <i class="fas fa-wallet text-3xl text-[#3498db] mb-2"></i>
                             <h3 class="text-lg font-semibold">TOTAL SALES</h3>
-                            <p class="text-2xl font-bold">₱ 120,000</p>
+                            <p class="text-2xl font-bold">{{ sales_order_count }}</p>
                         </div>
                         <div class="bg-white p-5 rounded-xl shadow-md flex flex-col items-center text-center">
                             <i class="fas fa-shopping-cart text-3xl text-[#3498db] mb-2"></i>
                             <h3 class="text-lg font-semibold">TOTAL SOLD</h3>
-                            <p class="text-2xl font-bold">52</p>
+                            <p class="text-2xl font-bold">{{ completed_count }}</p>
                         </div>
                     </div>
 

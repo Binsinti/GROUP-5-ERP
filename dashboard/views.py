@@ -1,11 +1,17 @@
 from django.shortcuts import render, redirect
-
+from erpdb.models import SalesOrder
 # Create your views here.
 
 def dashboard_view(request):
     if not request.user.is_authenticated:
         return redirect('login')
-    return render(request, 'dashboard/dashboard.html')
+
+    context = {
+        "sales_order_count": SalesOrder.objects.count(),
+        "completed_count": SalesOrder.objects.filter(status="completed").count(),
+    }
+
+    return render(request, 'dashboard/dashboard.html', context)
 
 def finance_view(request):
     if not request.user.is_authenticated:
