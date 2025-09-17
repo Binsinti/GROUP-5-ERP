@@ -130,10 +130,20 @@ STATIC_ROOT = BASE_DIR / 'productionfiles'  # For production: where collectstati
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Mail Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Or your provider
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'vinceyuan58@gmail.com'
-EMAIL_HOST_PASSWORD = 'wsrp tknp avpr xbsd'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'wlite0990@gmail.com'
+EMAIL_HOST_PASSWORD = 'fvlwllnqfemtadap' #'zunoruiagwgfzaps'
+
+# New IMAP Settings for Inbox
+IMAP_HOST = 'imap.gmail.com'
+IMAP_PORT = 993
+# IMAP_USE_SSL = True
+# IMAP_HOST_USER = 'wlite0990@gmail.com'
+IMAP_USER = 'wlite0990@gmail.com'
+# IMAP_HOST_PASSWORD = 'fvlwllnqfemtadap' #'zunoruiagwgfzaps'
+IMAP_PASSWORD = 'fvlwllnqfemtadap'
