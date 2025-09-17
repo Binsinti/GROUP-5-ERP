@@ -1,4 +1,4 @@
-# GROUP-5-ERP
+# LiteWork-ERP
 
 A comprehensive Enterprise Resource Planning (ERP) system built with Django, designed to manage all aspects of business operations from customer relations to financial reporting.
 
