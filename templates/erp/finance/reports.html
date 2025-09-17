@@ -1,0 +1,97 @@
+{% extends 'erp/base.html' %}
+
+{% block title %}Financial Reports - LiteWork{% endblock %}
+{% block page_title %}Financial Reports{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Financial Reports</h2>
+        <a href="{% url 'erp:generate_balance_sheet' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <i class="fas fa-plus mr-2"></i>Generate Balance Sheet
+        </a>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="border border-gray-200 rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="p-3 bg-blue-100 rounded-lg">
+                    <i class="fas fa-balance-scale text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Balance Sheet</h3>
+                    <p class="text-sm text-gray-600">Assets, Liabilities, and Equity</p>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'erp:generate_balance_sheet' %}" class="text-blue-600 hover:text-blue-900 text-sm font-medium">Generate Report →</a>
+            </div>
+        </div>
+        
+        <div class="border border-gray-200 rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="p-3 bg-green-100 rounded-lg">
+                    <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Income Statement</h3>
+                    <p class="text-sm text-gray-600">Revenue and Expenses</p>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a href="#" class="text-blue-600 hover:text-blue-900 text-sm font-medium">Generate Report →</a>
+            </div>
+        </div>
+        
+        <div class="border border-gray-200 rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="p-3 bg-yellow-100 rounded-lg">
+                    <i class="fas fa-coins text-yellow-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Cash Flow</h3>
+                    <p class="text-sm text-gray-600">Cash inflows and outflows</p>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a href="#" class="text-blue-600 hover:text-blue-900 text-sm font-medium">Generate Report →</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Reports</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for report in reports %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ report.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ report.get_report_type_display }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ report.start_date|date:"M d, Y" }} - {{ report.end_date|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ report.generated_at|date:"M d, Y H:i" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
+                            <a href="#" class="text-green-600 hover:text-green-900">Download</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No reports found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
