@@ -24,6 +24,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('authentication.urls')),
     path('dashboard/', include('dashboard.urls')),
-
-    path('dashboard/', include('erpdb.urls')),
+    path('erp/', include('erpdb.urls')),
 ]
