@@ -20,6 +20,23 @@
         .message-card:hover {
             background-color: #f0f4f7;
         }
+        /* Modal animations */
+        .modal-backdrop {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transform: scale(0.9) translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-backdrop.show .modal-content {
+            transform: scale(1) translateY(0);
+        }
     </style>
 </head>
 <body class="bg-[#ecf0f1] text-[#2c3e50] p-5">
@@ -68,120 +85,80 @@
                 <i class="fas fa-cog text-2xl text-[#2c3e50] cursor-pointer"></i>
             </header>
 
+            <!-- Success/Error Messages -->
+            {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <div class="{% if message.tags == 'success' %}bg-green-100 border border-green-400 text-green-700{% else %}bg-red-100 border border-red-400 text-red-700{% endif %} px-4 py-3 rounded mb-2">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div class="bg-white p-5 rounded-xl shadow-md flex flex-col h-full md:col-span-1">
                     <div class="relative mb-4">
                         <input type="text" placeholder="Search Client" class="w-[245px] pl-4 pr-10 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <i class="fas fa-search absolute right-[135px] top-1/2 -translate-y-1/2 text-gray-400"></i>
                         <button
-                            type="button" data-toggle="modal" data-target="#exampleModal"
+                            type="button"
+                            onclick="openComposeModal()"
                             class="bg-blue-500 text-white py-2 px-4 rounded-full hover:bg-blue-600 transition-colors duration-300"
                         >
-                            Compose
+                            <i class="fas fa-edit mr-2"></i>Compose
                         </button>
-                    <div class="flex justify-center">
-
-                          <div class="fixed inset-0 bg-slate-950/50 flex justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 ease-out z-[9999]" id="exampleModal" aria-hidden="true">
-                            <div class="bg-white rounded-xl shadow-2xl shadow-slate-950/5 border border-slate-200 w-1/3 scale-95">
-                              <div class="p-4 pb-2 flex justify-between items-center">
-                                <h1 class="text-lg text-slate-800 font-semibold">Compose Email</h1>
-                              </div>
-                                {% block content %}
-
-                                {% endblock %}
-                            </div>
-                          </div>
-                        </div>
                     </div>
+
                     <div class="flex-grow overflow-y-auto space-y-2">
-                        <div class="bg-gray-100 p-4 rounded-xl flex items-center space-x-4 cursor-pointer message-card">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl text-gray-600">
-                                <i class="fas fa-user"></i>
+                        {% for email in emails %}
+                            <div class="message-card cursor-pointer p-4 bg-gray-100 rounded-xl flex"
+                                 data-id="{{ email.id }}"
+                                 data-subject="{{ email.subject }}"
+                                 data-from="{{ email.from }}"
+                                 data-date="{{ email.date }}"
+                                 data-full-body="{{ email.full_body|escape }}"
+                                 onclick="selectEmailFromDiv(this)"
+                            >
+                                <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-xl text-gray-600">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex-grow ml-3">
+                                    <h4 class="font-semibold text-sm">{{ email.from|truncatechars:40 }}</h4>
+                                    <p class="text-sm text-gray-500 truncate">{{ email.subject|truncatechars:60 }}</p>
+                                    <p class="text-xs text-gray-400">{{ email.date|date:"M d, Y H:i"|default:email.date }}</p>
+                                </div>
                             </div>
-                            <div>
-                                <h4 class="font-semibold">John Doe</h4>
-                                <p class="text-sm text-gray-500">Company address or Company position (if person name)</p>
-                            </div>
+                        {% empty %}
+                        <div class="text-center text-gray-500 p-8">
+                            <i class="fas fa-inbox text-4xl mb-2"></i>
+                            <p>No emails found</p>
                         </div>
-                        <div class="bg-white p-4 rounded-xl flex items-center space-x-4 message-card cursor-pointer">
-                            <div class="w-12 h-12 bg-gray-200 rounded-full"></div>
-                            <div class="flex-grow">
-                                <div class="w-3/4 h-4 bg-gray-200 rounded mb-1"></div>
-                                <div class="w-full h-4 bg-gray-200 rounded"></div>
-                            </div>
-                        </div>
-                        <div class="bg-white p-4 rounded-xl flex items-center space-x-4 message-card cursor-pointer">
-                            <div class="w-12 h-12 bg-gray-200 rounded-full"></div>
-                            <div class="flex-grow">
-                                <div class="w-3/4 h-4 bg-gray-200 rounded mb-1"></div>
-                                <div class="w-full h-4 bg-gray-200 rounded"></div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
 
                 <div class="bg-white p-5 rounded-xl shadow-md flex flex-col h-full md:col-span-2 border border-[#9b59b6]">
-                    <div class="flex-grow overflow-y-auto space-y-4 pr-2">
-                        <div class="flex items-start space-x-4">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full flex-shrink-0 flex items-center justify-center text-xl text-gray-600">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="flex-grow">
-                                <div class="flex justify-between items-center mb-1">
-                                    <h5 class="font-semibold">JOHN DOE</h5>
-                                    <span class="text-xs text-gray-500">Aug 14, 2025 at 10:57 PM</span>
-                                </div>
-                                <div class="bg-gray-100 p-3 rounded-lg">
-                                    <p class="text-sm text-gray-700">Greetings! This is John Doe and Lorem ipsum dolor sit amet, con...</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start space-x-4">
-                            <div class="w-12 h-12 bg-white rounded-full flex-shrink-0 flex items-center justify-center text-xl text-gray-600">
-                                <i class="fas fa-reply rotate-180"></i>
-                            </div>
-                            <div class="flex-grow">
-                                <div class="flex justify-between items-center mb-1">
-                                    <h5 class="font-semibold">USER</h5>
-                                    <span class="text-xs text-gray-500">Aug 14, 2025 at 10:57 PM</span>
-                                </div>
-                                <div class="bg-blue-100 p-3 rounded-lg">
-                                    <p class="text-sm text-gray-700">Hi! Thank for the info Lorem ipsum dolor sit amet, consectetu...</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start space-x-4">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full flex-shrink-0 flex items-center justify-center text-xl text-gray-600">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="flex-grow">
-                                <div class="flex justify-between items-center mb-1">
-                                    <h5 class="font-semibold">JOHN DOE</h5>
-                                    <span class="text-xs text-gray-500">Aug 14, 2025 at 10:57 PM</span>
-                                </div>
-                                <div class="bg-gray-100 p-3 rounded-lg">
-                                    <p class="text-sm text-gray-700">Hey User,</p>
-                                    <p class="text-sm text-gray-700 mt-2">Thank you for the feedback. We would also want to add the following requests Lorem ipsum dolor sit amet, consectetur adipiscing elit....</p>
-                                    <p class="text-sm text-gray-700 mt-2">Regards,</p>
-                                    <p class="text-sm text-gray-700">John Doe</p>
-                                </div>
-                            </div>
+                    <div id="emailContent" class="flex-grow overflow-y-auto space-y-4 pr-2">
+                        <div class="text-center text-gray-500 mt-20">
+                            <i class="fas fa-envelope-open text-6xl mb-4"></i>
+                            <p>Select an email to view its content</p>
                         </div>
                     </div>
 
                     <div class="flex justify-end mt-4">
-                        <button id="replyBtn" class="bg-blue-500 text-white py-2 px-6 rounded-full hover:bg-blue-600 transition-colors duration-300">Reply</button>
+                        <button id="replyBtn" class="bg-blue-500 text-white py-2 px-6 rounded-full hover:bg-blue-600 transition-colors duration-300 hidden">Reply</button>
                     </div>
 
                     <div id="replyBox" class="mt-4 hidden">
-                        <textarea placeholder="Type your reply..." class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"></textarea>
+                        <input type="hidden" id="replyToEmail" name="to_email">
+                        <input type="hidden" id="replySubject" name="subject">
+                        <textarea id="replyText" placeholder="Type your reply..." class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"></textarea>
                         <div class="flex justify-between items-center">
                             <button class="text-gray-500 hover:text-blue-500">
                                 <i class="fas fa-paperclip"></i> Attach File
                             </button>
-                            <button class="bg-[#2ecc71] text-white px-4 py-2 rounded-full hover:bg-[#27ae60] transition-colors duration-300">
+                            <button onclick="sendReply()" class="bg-[#2ecc71] text-white px-4 py-2 rounded-full hover:bg-[#27ae60] transition-colors duration-300">
                                 Send <i class="fas fa-paper-plane ml-2"></i>
                             </button>
                         </div>
@@ -190,13 +167,222 @@
             </div>
         </div>
     </div>
-<script src="https://unpkg.com/@material-tailwind/html@3.0.0-beta.7/dist/material-tailwind.umd.min.js" defer></script>
+
+    <!-- Compose Email Modal -->
+    <div id="composeModal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">
+                    <i class="fas fa-edit mr-2 text-blue-500"></i>Compose Email
+                </h2>
+                <button onclick="closeComposeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <form method="post" action="" class="flex flex-col h-full">
+                {% csrf_token %}
+                <div class="flex-grow p-6 space-y-4 overflow-y-auto">
+                    <!-- To Field -->
+                    <div class="flex items-center space-x-3">
+                        <label class="text-sm font-medium text-gray-700 w-16">To:</label>
+                        <input
+                            type="email"
+                            name="to_email"
+                            required
+                            class="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="recipient@example.com"
+                        >
+                    </div>
+
+                    <!-- CC Field (Optional) -->
+                    <div class="flex items-center space-x-3">
+                        <label class="text-sm font-medium text-gray-700 w-16">CC:</label>
+                        <input
+                            type="email"
+                            name="cc_email"
+                            class="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="cc@example.com (optional)"
+                        >
+                    </div>
+
+                    <!-- Subject Field -->
+                    <div class="flex items-center space-x-3">
+                        <label class="text-sm font-medium text-gray-700 w-16">Subject:</label>
+                        <input
+                            type="text"
+                            name="subject"
+                            required
+                            class="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter subject line"
+                        >
+                    </div>
+
+                    <!-- Message Body -->
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700">Message:</label>
+                        <textarea
+                            name="message"
+                            rows="12"
+                            required
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            placeholder="Type your message here..."
+                        ></textarea>
+                    </div>
+
+                    <!-- File Attachment (Optional) -->
+                    <div class="flex items-center space-x-3">
+                        <label class="text-sm font-medium text-gray-700 w-16">Attach:</label>
+                        <input
+                            type="file"
+                            name="attachment"
+                            class="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+                    <div class="flex items-center space-x-4">
+                        <button type="button" class="text-gray-500 hover:text-blue-500 transition-colors">
+                            <i class="fas fa-paperclip mr-1"></i> Attach File
+                        </button>
+                        <button type="button" class="text-gray-500 hover:text-blue-500 transition-colors">
+                            <i class="fas fa-font mr-1"></i> Format
+                        </button>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button
+                            type="button"
+                            onclick="closeComposeModal()"
+                            class="px-6 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-colors duration-300"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            class="px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors duration-300"
+                        >
+                            <i class="fas fa-paper-plane mr-2"></i>Send Email
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
+        // Reply functionality
         document.getElementById('replyBtn').addEventListener('click', function() {
             document.getElementById('replyBox').classList.toggle('hidden');
             this.textContent = this.textContent === 'Reply' ? 'Cancel' : 'Reply';
         });
+
+        // Modal functions
+        function openComposeModal() {
+            const modal = document.getElementById('composeModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeComposeModal() {
+            const modal = document.getElementById('composeModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto'; // Restore scrolling
+
+            // Reset form
+            const form = modal.querySelector('form');
+            form.reset();
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('composeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeComposeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeComposeModal();
+            }
+        });
+
+        // Initialize modal as hidden
+        document.addEventListener('DOMContentLoaded', function() {
+            closeComposeModal();
+        });
+
+        const sendReply = () => {
+            const replyText = document.getElementById('replyText').value;
+            const toEmail = document.getElementById('replyToEmail').value;
+            const subject = document.getElementById('replySubject').value;
+
+            // Create a hidden form to POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = ''; // Current page or a Django view handling reply
+
+            // CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+
+            // To email
+            const toInput = document.createElement('input');
+            toInput.type = 'hidden';
+            toInput.name = 'to_email';
+            toInput.value = toEmail;
+            form.appendChild(toInput);
+
+            // Subject
+            const subjectInput = document.createElement('input');
+            subjectInput.type = 'hidden';
+            subjectInput.name = 'subject';
+            subjectInput.value = subject;
+            form.appendChild(subjectInput);
+
+            // Message
+            const messageInput = document.createElement('input');
+            messageInput.type = 'hidden';
+            messageInput.name = 'message';
+            messageInput.value = replyText;
+            form.appendChild(messageInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+        
+        const selectEmailFromDiv = (div) => {
+            const subject = div.dataset.subject;
+            const from = div.dataset.from;
+            const date = div.dataset.date;
+            const body = div.dataset.fullBody;
+
+            const contentDiv = document.getElementById('emailContent');
+            contentDiv.innerHTML = `
+                <h2 class="font-semibold text-lg">${subject}</h2>
+                <p class="text-sm text-gray-500">From: ${from}</p>
+                <p class="text-sm text-gray-500">Date: ${date}</p>
+                <hr class="my-2"/>
+                <pre class="text-gray-700 whitespace-pre-wrap">${body}</pre>
+            `;
+
+            const replyBtn = document.getElementById('replyBtn');
+            const replyBox = document.getElementById('replyBox');
+            replyBtn.classList.remove('hidden');
+
+            // Auto-fill reply box if already visible
+            document.getElementById('replyText').value = `\n\n--- Original Message ---\n${body}`;
+            document.getElementById('replyToEmail').value = from.match(/<(.+)>/) ? from.match(/<(.+)>/)[1] : from;
+            document.getElementById('replySubject').value = subject.startsWith('Re:') ? subject : `Re: ${subject}`;
+        }
     </script>
 
 </body>

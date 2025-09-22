@@ -9,6 +9,4 @@ urlpatterns = [
     path('activity', views.activity_view, name='activity' ),
     path('inbox/', views.inbox_view, name='inbox'),
     path('settings/', views.settings_view, name='settings'),
-    path('navbar/', views.navbar_view, name='navbar'),
-
-]
+    path('navbar/', views.navbar_view, name='navbar'),]
