@@ -182,7 +182,7 @@
             </div>
 
             <!-- Modal Body -->
-            <form method="post" action="" class="flex flex-col h-full">
+            <form method="post" action="" class="flex flex-col h-full" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="flex-grow p-6 space-y-4 overflow-y-auto">
                     <!-- To Field -->
@@ -216,7 +216,7 @@
                             name="subject"
                             required
                             class="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter subject line"
+                            placeholder="Enter subject"
                         >
                     </div>
 

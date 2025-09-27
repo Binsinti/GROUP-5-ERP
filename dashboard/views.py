@@ -41,7 +41,7 @@ def inbox_view(request):
 
         # Handle email form submission
     if request.method == 'POST':
-        # Check if this is an email compose form submission
+        # Check if this is an email compose form submission, ctrl F 'Modal Body'
         if 'to_email' in request.POST:
             to_email = request.POST.get('to_email')
             cc_email = request.POST.get('cc_email')

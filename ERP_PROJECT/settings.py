@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,8 +78,12 @@ WSGI_APPLICATION = 'ERP_PROJECT.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'erp',
+        'USER': 'postgres',
+        'PASSWORD': 'objor123',
+        'HOST': 'localhost', # Or the IP of your locaal server
+        'PORT': '5432', # Default PostgreSQL port
     }
 }
 
@@ -119,9 +124,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'staticfiles',  # Place your static files in the 'static' folder at the project root
-]
+STATICFILES_DIRS = [ BASE_DIR / 'staticfiles'] # Place your static files in the 'static' folder at the project root
 
 STATIC_ROOT = BASE_DIR / 'productionfiles'  # For production: where collectstatic will collect files
 
