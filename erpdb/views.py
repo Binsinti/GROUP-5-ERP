@@ -14,13 +14,15 @@ from .models import (
     SalesOrder, SalesOrderItem, PurchaseOrder, PurchaseOrderItem,
     ChartOfAccounts, JournalEntry, JournalLine,
     Department, Position, Employee, InventoryTransaction, FinancialReport,
-    Payment, Invoice
+    Payment, Invoice, InvoiceItem
 )
 from .forms import (
     CustomerForm, VendorForm, ProductForm, SalesOrderForm, PurchaseOrderForm,
     JournalEntryForm, EmployeeForm, InventoryTransactionForm, CustomerSearchForm,
-    ProductSearchForm, SalesOrderItemForm, PurchaseOrderItemForm, PaymentForm, InvoiceForm
+    ProductSearchForm, SalesOrderItemForm, PurchaseOrderItemForm, PaymentForm, InvoiceForm,
+    InvoiceReceiveForm, InvoiceItemFormSet, QuickInvoiceForm
 )
+from decimal import Decimal
 
 # Dashboard Views
 @login_required
@@ -192,6 +194,22 @@ def customer_edit(request, customer_id):
 
     return render(request, 'erp/customers/edit.html', {'form': form, 'customer': customer})
 
+@login_required
+def customer_delete(request, customer_id):
+    """Delete customer"""
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    if request.method == 'POST':
+        customer_name = customer.name
+        customer.delete()
+        messages.success(request, f'Customer {customer_name} deleted successfully!')
+        return redirect('erp:customer_list')
+
+    context = {
+        'customer': customer,
+    }
+    return render(request, 'erp/customers/confirm_delete.html', context)
+
 # Vendor Management Views
 @login_required
 def vendor_list(request):
@@ -247,6 +265,37 @@ def vendor_create(request):
         form = VendorForm()
 
     return render(request, 'erp/vendors/create.html', {'form': form})
+
+@login_required
+def vendor_edit(request, vendor_id):
+    """Edit vendor details"""
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+    if request.method == 'POST':
+        form = VendorForm(request.POST, instance=vendor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Vendor {vendor.name} updated successfully.')
+            return redirect('erp:vendor_detail', vendor_id=vendor.id)
+    else:
+        form = VendorForm(instance=vendor)
+
+    return render(request, 'erp/vendors/edit.html', {'form': form, 'vendor': vendor})
+
+@login_required
+def vendor_delete(request, vendor_id):
+    """Delete vendor"""
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+
+    if request.method == 'POST':
+        vendor_name = vendor.name
+        vendor.delete()
+        messages.success(request, f'Vendor {vendor_name} deleted successfully!')
+        return redirect('erp:vendor_list')
+
+    context = {
+        'vendor': vendor,
+    }
+    return render(request, 'erp/vendors/confirm_delete.html', context)
 
 # Product Management Views
 @login_required
@@ -309,6 +358,37 @@ def product_create(request):
         form = ProductForm()
 
     return render(request, 'erp/products/create.html', {'form': form})
+
+@login_required
+def product_edit(request, product_id):
+    """Edit product details"""
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Product {product.name} updated successfully.')
+            return redirect('erp:product_detail', product_id=product.id)
+    else:
+        form = ProductForm(instance=product)
+
+    return render(request, 'erp/products/edit.html', {'form': form, 'product': product})
+
+@login_required
+def product_delete(request, product_id):
+    """Delete product"""
+    product = get_object_or_404(Product, id=product_id)
+
+    if request.method == 'POST':
+        product_name = product.name
+        product.delete()
+        messages.success(request, f'Product {product_name} deleted successfully!')
+        return redirect('erp:product_list')
+
+    context = {
+        'product': product,
+    }
+    return render(request, 'erp/products/confirm_delete.html', context)
 
 # Sales Management Views
 @login_required
@@ -755,6 +835,22 @@ def employee_create(request):
 
     return render(request, 'erp/hr/employee_create.html', {'form': form})
 
+@login_required
+def employee_delete(request, employee_id):
+    """Delete employee"""
+    employee = get_object_or_404(Employee, id=employee_id)
+
+    if request.method == 'POST':
+        employee_name = employee.user.get_full_name()
+        employee.delete()
+        messages.success(request, f'Employee {employee_name} deleted successfully!')
+        return redirect('erp:employee_list')
+
+    context = {
+        'employee': employee,
+    }
+    return render(request, 'erp/hr/employee_confirm_delete.html', context)
+
 # Payment Management Views
 @login_required
 def payment_list(request):
@@ -792,121 +888,289 @@ def payment_create(request):
 # Invoice Management Views
 @login_required
 def invoice_list(request):
-    invoices = Invoice.objects.select_related('customer', 'vendor', 'created_by').order_by('-invoice_date')
-    
-    paginator = Paginator(invoices, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'invoices': page_obj,
-        'total_invoices': invoices.count(),
-    }
-    return render(request, 'erp/finance/invoice_list.html', context)
+    invoices = Invoice.objects.all().order_by('-created_at')
 
-@login_required
-def invoice_detail(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    # Filter by invoice type
+    invoice_type = request.GET.get('type')
+    if invoice_type in ['sales', 'purchase']:
+        invoices = invoices.filter(invoice_type=invoice_type)
+
+    # Filter by status
+    status = request.GET.get('status')
+    if status:
+        invoices = invoices.filter(status=status)
+
+    # Search functionality
+    search = request.GET.get('search')
+    if search:
+        invoices = invoices.filter(
+            Q(invoice_number__icontains=search) |
+            Q(customer__name__icontains=search) |
+            Q(vendor__name__icontains=search)
+        )
+
+    # Update overdue invoices
+    today = timezone.now().date()
+    overdue_invoices = invoices.filter(
+        due_date__lt=today,
+        status__in=['draft', 'sent']
+    )
+    overdue_invoices.update(status='overdue')
+
+    # Pagination
+    paginator = Paginator(invoices, 25)
+    page = request.GET.get('page')
+    invoices = paginator.get_page(page)
 
     context = {
-        'invoice': invoice,
-        'title': f'Invoice {invoice.invoice_number}',
+        'invoices': invoices,
+        'invoice_types': Invoice.INVOICE_TYPE_CHOICES,
+        'status_choices': Invoice.STATUS_CHOICES,
     }
-    return render(request, 'erp/finance/invoice_detail.html', context)
+    return render(request, 'erp/invoices/invoice_list.html', context)
 
 @login_required
 def invoice_create(request):
+    """Create a new invoice with line items"""
     if request.method == 'POST':
         form = InvoiceForm(request.POST)
-        if form.is_valid():
-            invoice = form.save(commit=False)
-            invoice.created_by = request.user
-            # Generate invoice number
-            last_invoice = Invoice.objects.order_by('-id').first()
-            next_id = (last_invoice.id if last_invoice else 0) + 1
-            invoice.invoice_number = f"INV{next_id:06d}"
-            invoice.save()
-            messages.success(request, f'Invoice {invoice.invoice_number} created successfully.')
-            return redirect('erp:invoice_detail', invoice_id=invoice.id)
+        formset = InvoiceItemFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            with transaction.atomic():
+                invoice = form.save(commit=False)
+                invoice.created_by = request.user
+                invoice.save()
+
+                formset.instance = invoice
+                formset.save()
+
+                # Calculate totals
+                invoice.calculate_totals()
+
+                messages.success(request, f'Invoice {invoice.invoice_number} created successfully!')
+                return redirect('erp:invoice_detail', pk=invoice.pk)
     else:
         form = InvoiceForm()
-
-    return render(request, 'erp/finance/invoice_create.html', {'form': form})
-
-@login_required
-def invoice_edit(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
-
-    if request.method == 'POST':
-        form = InvoiceForm(request.POST, instance=invoice)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Invoice {invoice.invoice_number} updated successfully.')
-            return redirect('erp:invoice_detail', invoice_id=invoice.id)
-    else:
-        form = InvoiceForm(instance=invoice)
+        formset = InvoiceItemFormSet()
 
     context = {
         'form': form,
-        'invoice': invoice,
-        'title': f'Edit Invoice {invoice.invoice_number}',
+        'formset': formset,
+        'title': 'Create Invoice',
     }
-    return render(request, 'erp/finance/invoice_edit.html', context)
+    return render(request, 'erp/invoices/invoice_create.html', context)
 
 @login_required
-def invoice_delete(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+def invoice_detail(request, pk):
+    """View invoice details"""
+    invoice = get_object_or_404(Invoice, pk=pk)
+    items = invoice.invoiceitem_set.all()
+
+    context = {
+        'invoice': invoice,
+        'items': items,
+    }
+    return render(request, 'erp/invoices/invoice_detail.html', context)
+
+@login_required
+def invoice_update(request, pk):
+    """Update invoice details"""
+    invoice = get_object_or_404(Invoice, pk=pk)
+
+    if request.method == 'POST':
+        if invoice.invoice_type == 'purchase':
+            form = InvoiceReceiveForm(request.POST, instance=invoice)
+        else:
+            form = InvoiceForm(request.POST, instance=invoice)
+            formset = InvoiceItemFormSet(request.POST, instance=invoice)
+
+        if invoice.invoice_type == 'purchase':
+            if form.is_valid():
+                form.save()
+                messages.success(request, f'Invoice {invoice.invoice_number} updated successfully!')
+                return redirect('erp:invoice_detail', pk=invoice.pk)
+        else:
+            if form.is_valid() and formset.is_valid():
+                with transaction.atomic():
+                    form.save()
+                    formset.save()
+                    invoice.calculate_totals()
+
+                messages.success(request, f'Invoice {invoice.invoice_number} updated successfully!')
+                return redirect('erp:invoice_detail', pk=invoice.pk)
+    else:
+        if invoice.invoice_type == 'purchase':
+            form = InvoiceReceiveForm(instance=invoice)
+            formset = None
+        else:
+            form = InvoiceForm(instance=invoice)
+            formset = InvoiceItemFormSet(instance=invoice)
+
+    context = {
+        'form': form,
+        'formset': formset,
+        'invoice': invoice,
+        'title': f'Update Invoice {invoice.invoice_number}',
+    }
+
+    template = 'erp/invoices/receive_invoice.html' if invoice.invoice_type == 'purchase' else 'erp/invoices/invoice_create.html'
+    return render(request, template, context)
+
+@login_required
+def invoice_delete(request, pk):
+    """Delete invoice"""
+    invoice = get_object_or_404(Invoice, pk=pk)
 
     if request.method == 'POST':
         invoice_number = invoice.invoice_number
         invoice.delete()
-        messages.success(request, f'Invoice {invoice_number} deleted successfully.')
+        messages.success(request, f'Invoice {invoice_number} deleted successfully!')
         return redirect('erp:invoice_list')
 
     context = {
         'invoice': invoice,
-        'title': f'Delete Invoice {invoice.invoice_number}',
     }
-    return render(request, 'erp/finance/invoice_delete.html', context)
-
-# Financial Reports Views
-@login_required
-def financial_reports(request):
-    return render(request, 'erp/finance/reports.html')
+    return render(request, 'erp/invoices/invoice_confirm_delete.html', context)
 
 @login_required
-def generate_balance_sheet(request):
+def mark_invoice_paid(request, pk):
+    """Mark invoice as paid"""
+    invoice = get_object_or_404(Invoice, pk=pk)
+
     if request.method == 'POST':
-        end_date = request.POST.get('end_date')
-        if end_date:
-            # Simple balance sheet generation
-            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        amount_paid = request.POST.get('amount_paid')
+        if amount_paid:
+            try:
+                amount = Decimal(amount_paid)
+                invoice.mark_as_paid(amount)
 
-            # This is a simplified version - in a real system you'd calculate actual account balances
-            report_data = {
-                'assets': {
-                    'current_assets': 50000,
-                    'fixed_assets': 100000,
-                    'total_assets': 150000,
-                },
-                'liabilities': {
-                    'current_liabilities': 20000,
-                    'long_term_liabilities': 30000,
-                    'total_liabilities': 50000,
-                },
-                'equity': {
-                    'retained_earnings': 100000,
-                    'total_equity': 100000,
-                }
-            }
+                # Create payment record
+                Payment.objects.create(
+                    payment_type='receipt' if invoice.invoice_type == 'sales' else 'payment',
+                    amount=amount,
+                    payment_method='other',
+                    customer=invoice.customer,
+                    vendor=invoice.vendor,
+                    reference_number=invoice.invoice_number,
+                    notes=f'Payment for invoice {invoice.invoice_number}',
+                    created_by=request.user
+                )
 
-            context = {
-                'report_data': report_data,
-                'end_date': end_date,
-            }
-            return render(request, 'erp/finance/balance_sheet.html', context)
+                messages.success(request, f'Invoice {invoice.invoice_number} marked as paid!')
+            except (ValueError, TypeError):
+                messages.error(request, 'Invalid payment amount.')
+        else:
+            invoice.mark_as_paid()
+            messages.success(request, f'Invoice {invoice.invoice_number} marked as paid!')
 
-    return render(request, 'erp/finance/generate_balance_sheet.html')
+        return redirect('erp:invoice_detail', pk=invoice.pk)
+
+    context = {
+        'invoice': invoice,
+    }
+    return render(request, 'erp/invoices/mark_paid.html', context)
+
+@login_required
+def receive_invoice(request):
+    """Receive a new invoice from vendor"""
+    if request.method == 'POST':
+        form = InvoiceReceiveForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                invoice = form.save(commit=False)
+                invoice.invoice_type = 'purchase'
+                invoice.created_by = request.user
+
+                # Calculate tax amount if not provided
+                if not invoice.tax_amount:
+                    invoice.tax_amount = (invoice.total_amount * invoice.tax_rate) / 100
+
+                # Calculate subtotal if not provided
+                if not invoice.subtotal:
+                    invoice.subtotal = invoice.total_amount - invoice.tax_amount
+
+                invoice.save()
+
+                # Update purchase order status if linked
+                if invoice.purchase_order:
+                    po = invoice.purchase_order
+                    po.status = 'invoiced'
+                    po.save()
+
+                messages.success(request, f'Invoice {invoice.invoice_number} received successfully!')
+                return redirect('erp:invoice_detail', pk=invoice.pk)
+    else:
+        form = InvoiceReceiveForm()
+
+    context = {
+        'form': form,
+        'title': 'Receive Invoice',
+    }
+    return render(request, 'erp/invoices/receive_invoice.html', context)
+
+@login_required
+def pending_invoices(request):
+    """List pending invoices that need attention"""
+    today = timezone.now().date()
+
+    # Get overdue invoices
+    overdue_invoices = Invoice.objects.filter(
+        status__in=['draft', 'sent'],
+        due_date__lt=today
+    ).order_by('due_date')
+
+    # Get invoices due soon (within 7 days)
+    due_soon = Invoice.objects.filter(
+        status__in=['draft', 'sent'],
+        due_date__gte=today,
+        due_date__lte=today + timedelta(days=7)
+    ).order_by('due_date')
+
+    # Get unpaid purchase invoices
+    unpaid_purchase = Invoice.objects.filter(
+        invoice_type='purchase',
+        status__in=['draft', 'sent']
+    ).order_by('-created_at')
+
+    context = {
+        'overdue_invoices': overdue_invoices,
+        'due_soon': due_soon,
+        'unpaid_purchase': unpaid_purchase,
+    }
+    return render(request, 'erp/invoices/pending_invoices.html', context)
+
+@login_required
+def quick_invoice(request):
+    """Default quick invoice creation - shows selection page"""
+    return render(request, 'erp/invoices/quick_invoice_select.html')
+
+@login_required
+def quick_invoice_create(request, invoice_type):
+    """Quick invoice creation for simple invoices"""
+    if request.method == 'POST':
+        form = QuickInvoiceForm(request.POST, invoice_type=invoice_type)
+        if form.is_valid():
+            invoice = form.save(commit=False)
+            invoice.invoice_type = invoice_type
+            invoice.created_by = request.user
+
+            # Calculate tax and total
+            invoice.tax_amount = (invoice.subtotal * invoice.tax_rate) / 100
+            invoice.total_amount = invoice.subtotal + invoice.tax_amount
+
+            invoice.save()
+            messages.success(request, f'Invoice {invoice.invoice_number} created successfully!')
+            return redirect('erp:invoice_detail', pk=invoice.pk)
+    else:
+        form = QuickInvoiceForm(invoice_type=invoice_type)
+
+    context = {
+        'form': form,
+        'invoice_type': invoice_type,
+        'title': f'Quick {"Sales" if invoice_type == "sales" else "Purchase"} Invoice',
+    }
+    return render(request, 'erp/invoices/quick_invoice.html', context)
 
 # API Views for AJAX requests
 @login_required
@@ -1017,3 +1281,8 @@ def sales_order_edit(request, order_id):
         'title': f'Edit Sales Order {order.order_number}',
     }
     return render(request, 'erp/sales/edit.html', context)
+
+@login_required
+def financial_reports(request):
+    """View for displaying financial reports page."""
+    return render(request, 'erp/finance/financial_reports.html')

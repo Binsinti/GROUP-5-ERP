@@ -5,8 +5,9 @@ from .models import (
     SalesOrder, SalesOrderItem, PurchaseOrder, PurchaseOrderItem,
     ChartOfAccounts, JournalEntry, JournalLine,
     Department, Position, Employee, InventoryTransaction,
-    Payment, Invoice
+    Payment, Invoice, InvoiceItem
 )
+from django.forms import inlineformset_factory
 
 # Customer Forms
 class CustomerForm(forms.ModelForm):
@@ -247,27 +248,208 @@ class PaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
         fields = [
-            'payment_type', 'amount', 'payment_method', 'reference_number',
-            'customer', 'vendor', 'sales_order', 'purchase_order', 'notes'
+            'payment_type', 'customer', 'vendor', 'amount', 'payment_method',
+            'reference_number', 'notes'
         ]
         widgets = {
-            'amount': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'amount': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['customer'].queryset = Customer.objects.filter(is_active=True)
+        self.fields['vendor'].queryset = Vendor.objects.filter(is_active=True)
+        self.fields['customer'].required = False
+        self.fields['vendor'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        payment_type = cleaned_data.get('payment_type')
+        customer = cleaned_data.get('customer')
+        vendor = cleaned_data.get('vendor')
+
+        if payment_type == 'receipt' and not customer:
+            raise forms.ValidationError("Customer is required for receipts.")
+        if payment_type == 'payment' and not vendor:
+            raise forms.ValidationError("Vendor is required for payments.")
+
+        return cleaned_data
 
 # Invoice Forms
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = [
-            'invoice_type', 'customer', 'vendor', 'sales_order', 'purchase_order',
-            'invoice_date', 'due_date', 'notes'
+            'invoice_type', 'customer', 'vendor', 'invoice_date', 'due_date',
+            'tax_rate', 'discount_amount', 'notes', 'terms_and_conditions'
         ]
         widgets = {
             'invoice_date': forms.DateInput(attrs={'type': 'date'}),
             'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'tax_rate': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100'}),
+            'discount_amount': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
+            'terms_and_conditions': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['customer'].queryset = Customer.objects.filter(is_active=True)
+        self.fields['vendor'].queryset = Vendor.objects.filter(is_active=True)
+
+        # Make customer and vendor conditional based on invoice type
+        if self.instance and self.instance.invoice_type:
+            if self.instance.invoice_type == 'sales':
+                self.fields['vendor'].widget = forms.HiddenInput()
+                self.fields['vendor'].required = False
+            elif self.instance.invoice_type == 'purchase':
+                self.fields['customer'].widget = forms.HiddenInput()
+                self.fields['customer'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        invoice_type = cleaned_data.get('invoice_type')
+        customer = cleaned_data.get('customer')
+        vendor = cleaned_data.get('vendor')
+
+        if invoice_type == 'sales' and not customer:
+            raise forms.ValidationError("Customer is required for sales invoices.")
+        if invoice_type == 'purchase' and not vendor:
+            raise forms.ValidationError("Vendor is required for purchase invoices.")
+
+        return cleaned_data
+
+
+class InvoiceItemForm(forms.ModelForm):
+    class Meta:
+        model = InvoiceItem
+        fields = ['product', 'description', 'quantity', 'unit_price']
+        widgets = {
+            'quantity': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
+            'unit_price': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product'].queryset = Product.objects.filter(is_active=True)
+        self.fields['product'].required = False
+
+        # Auto-populate description and unit price when product is selected
+        if self.instance and self.instance.product:
+            self.fields['description'].initial = self.instance.product.name
+            self.fields['unit_price'].initial = self.instance.product.unit_price
+
+
+# Create formset for invoice items
+InvoiceItemFormSet = inlineformset_factory(
+    Invoice,
+    InvoiceItem,
+    form=InvoiceItemForm,
+    extra=1,  # Start with 1 empty form
+    min_num=1,  # Require at least 1 item
+    validate_min=True,
+    can_delete=True
+)
+
+
+class InvoiceReceiveForm(forms.ModelForm):
+    """Simplified form for receiving invoices from vendors"""
+    class Meta:
+        model = Invoice
+        fields = [
+            'vendor', 'invoice_number', 'invoice_date', 'due_date',
+            'total_amount', 'tax_rate', 'notes', 'purchase_order'
+        ]
+        widgets = {
+            'invoice_date': forms.DateInput(attrs={'type': 'date'}),
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'total_amount': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'tax_rate': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100'}),
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['vendor'].queryset = Vendor.objects.filter(is_active=True)
+        self.fields['purchase_order'].queryset = PurchaseOrder.objects.filter(
+            status__in=['confirmed', 'received']
+        )
+        self.fields['purchase_order'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Auto-set invoice type to purchase
+        cleaned_data['invoice_type'] = 'purchase'
+        return cleaned_data
+
+
+class QuickInvoiceForm(forms.ModelForm):
+    """Quick invoice creation form with basic details"""
+    class Meta:
+        model = Invoice
+        fields = [
+            'invoice_type', 'customer', 'vendor', 'invoice_date', 'due_date',
+            'subtotal', 'tax_rate', 'notes'
+        ]
+        widgets = {
+            'invoice_date': forms.DateInput(attrs={'type': 'date'}),
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'subtotal': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'tax_rate': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100'}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        invoice_type = kwargs.pop('invoice_type', None)
+        super().__init__(*args, **kwargs)
+
+        if invoice_type:
+            self.fields['invoice_type'].initial = invoice_type
+            self.fields['invoice_type'].widget = forms.HiddenInput()
+
+            if invoice_type == 'sales':
+                self.fields['vendor'].widget = forms.HiddenInput()
+                self.fields['vendor'].required = False
+                self.fields['customer'].queryset = Customer.objects.filter(is_active=True)
+            elif invoice_type == 'purchase':
+                self.fields['customer'].widget = forms.HiddenInput()
+                self.fields['customer'].required = False
+                self.fields['vendor'].queryset = Vendor.objects.filter(is_active=True)
+
+
+# Enhanced Payment Form
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        fields = [
+            'payment_type', 'customer', 'vendor', 'amount', 'payment_method',
+            'reference_number', 'notes'
+        ]
+        widgets = {
+            'amount': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
+            'notes': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['customer'].queryset = Customer.objects.filter(is_active=True)
+        self.fields['vendor'].queryset = Vendor.objects.filter(is_active=True)
+        self.fields['customer'].required = False
+        self.fields['vendor'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        payment_type = cleaned_data.get('payment_type')
+        customer = cleaned_data.get('customer')
+        vendor = cleaned_data.get('vendor')
+
+        if payment_type == 'receipt' and not customer:
+            raise forms.ValidationError("Customer is required for receipts.")
+        if payment_type == 'payment' and not vendor:
+            raise forms.ValidationError("Vendor is required for payments.")
+
+        return cleaned_data
 
 # Search Forms
 class CustomerSearchForm(forms.Form):
