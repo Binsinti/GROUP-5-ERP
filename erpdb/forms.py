@@ -5,7 +5,7 @@ from .models import (
     SalesOrder, SalesOrderItem, PurchaseOrder, PurchaseOrderItem,
     ChartOfAccounts, JournalEntry, JournalLine,
     Department, Position, Employee, InventoryTransaction,
-    Payment, Invoice, InvoiceItem
+    Payment, Invoice, InvoiceItem, Lead, LeadNote, EmailInquiry
 )
 from django.forms import inlineformset_factory
 
@@ -393,11 +393,26 @@ class QuickInvoiceForm(forms.ModelForm):
             'subtotal', 'tax_rate', 'notes'
         ]
         widgets = {
-            'invoice_date': forms.DateInput(attrs={'type': 'date'}),
-            'due_date': forms.DateInput(attrs={'type': 'date'}),
-            'subtotal': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-            'tax_rate': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100'}),
-            'notes': forms.Textarea(attrs={'rows': 3}),
+            'invoice_date': forms.DateInput(attrs={
+                'type': 'date',
+            }),
+            'due_date': forms.DateInput(attrs={
+                'type': 'date',
+            }),
+            'subtotal': forms.NumberInput(attrs={
+                'step': '0.01',
+                'min': '0',
+                'placeholder': '0.00'
+            }),
+            'tax_rate': forms.NumberInput(attrs={
+                'step': '0.01',
+                'min': '0',
+                'max': '100',
+                'placeholder': '0.00'
+            }),
+            'notes': forms.Textarea(attrs={
+                'rows': 3,
+            }),
         }
 
     def __init__(self, *args, **kwargs):
@@ -496,4 +511,147 @@ class SalesOrderSearchForm(forms.Form):
     date_to = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={'type': 'date'})
+    )
+
+
+# Lead & Email Inquiry Forms
+class LeadForm(forms.ModelForm):
+    """Form for creating and editing leads"""
+    class Meta:
+        model = Lead
+        fields = [
+            'name', 'email', 'phone', 'company', 'subject', 'message',
+            'source', 'status', 'priority', 'interested_products',
+            'estimated_value', 'assigned_to', 'next_follow_up'
+        ]
+        widgets = {
+            'message': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter inquiry details...'}),
+            'estimated_value': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'next_follow_up': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'interested_products': forms.CheckboxSelectMultiple(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['interested_products'].queryset = Product.objects.filter(is_active=True)
+        self.fields['assigned_to'].queryset = User.objects.filter(is_active=True)
+        self.fields['assigned_to'].required = False
+        self.fields['next_follow_up'].required = False
+
+
+class LeadNoteForm(forms.ModelForm):
+    """Form for adding notes to leads"""
+    class Meta:
+        model = LeadNote
+        fields = ['note', 'note_type']
+        widgets = {
+            'note': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Add a note about this lead...',
+                'class': 'form-control'
+            }),
+            'note_type': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+
+class EmailInquiryForm(forms.ModelForm):
+    """Form for manually creating email inquiries"""
+    class Meta:
+        model = EmailInquiry
+        fields = [
+            'from_email', 'from_name', 'subject', 'body', 'received_at'
+        ]
+        widgets = {
+            'body': forms.Textarea(attrs={'rows': 6, 'placeholder': 'Email message content...'}),
+            'received_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Auto-generate message_id if not provided
+        if not self.instance.message_id:
+            import uuid
+            self.instance.message_id = f"manual-{uuid.uuid4()}"
+
+
+class LeadConversionForm(forms.Form):
+    """Form for converting lead to customer"""
+    create_sales_order = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Create Sales Order",
+        help_text="Automatically create a sales order for this customer"
+    )
+
+    # Customer details (in case we need to override)
+    customer_code = forms.CharField(
+        max_length=20,
+        required=False,
+        help_text="Leave blank to auto-generate"
+    )
+
+    customer_type = forms.ChoiceField(
+        choices=Customer.CUSTOMER_TYPE_CHOICES,
+        initial='individual'
+    )
+
+    credit_limit = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        initial=0,
+        widget=forms.NumberInput(attrs={'step': '0.01'})
+    )
+
+    payment_terms = forms.CharField(
+        max_length=100,
+        required=False,
+        initial="Net 30",
+        help_text="e.g., Net 30, Net 60, COD"
+    )
+
+
+class LeadSearchForm(forms.Form):
+    """Form for searching and filtering leads"""
+    search = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Search by name, email, company...',
+            'class': 'form-control'
+        })
+    )
+
+    status = forms.ChoiceField(
+        choices=[('', 'All Statuses')] + Lead.STATUS_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    source = forms.ChoiceField(
+        choices=[('', 'All Sources')] + Lead.SOURCE_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    priority = forms.ChoiceField(
+        choices=[('', 'All Priorities')] + Lead.PRIORITY_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    assigned_to = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_active=True),
+        required=False,
+        empty_label="All Assignees",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    date_from = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    date_to = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )

@@ -731,6 +731,43 @@ def purchase_order_delete_item(request, order_id, item_id):
     }
     return render(request, 'erp/purchases/delete_item.html', context)
 
+@login_required
+def purchase_order_edit(request, order_id):
+    """Edit purchase order"""
+    order = get_object_or_404(PurchaseOrder, id=order_id)
+
+    if request.method == 'POST':
+        form = PurchaseOrderForm(request.POST, instance=order)
+        if form.is_valid():
+            order = form.save()
+            messages.success(request, f'Purchase Order {order.po_number} updated successfully.')
+            return redirect('erp:purchase_order_detail', order_id=order.id)
+    else:
+        form = PurchaseOrderForm(instance=order)
+
+    context = {
+        'form': form,
+        'order': order,
+        'title': f'Edit Purchase Order {order.po_number}'
+    }
+    return render(request, 'erp/purchases/edit.html', context)
+
+@login_required
+def purchase_order_delete(request, order_id):
+    """Delete purchase order"""
+    order = get_object_or_404(PurchaseOrder, id=order_id)
+
+    if request.method == 'POST':
+        po_number = order.po_number
+        order.delete()
+        messages.success(request, f'Purchase Order {po_number} deleted successfully!')
+        return redirect('erp:purchase_order_list')
+
+    context = {
+        'order': order,
+    }
+    return render(request, 'erp/purchases/purchase_order_confirm_delete.html', context)
+
 # Inventory Management Views
 @login_required
 def inventory_list(request):
@@ -834,6 +871,27 @@ def employee_create(request):
         form = EmployeeForm()
 
     return render(request, 'erp/hr/employee_create.html', {'form': form})
+
+@login_required
+def employee_edit(request, employee_id):
+    """Edit employee"""
+    employee = get_object_or_404(Employee, id=employee_id)
+
+    if request.method == 'POST':
+        form = EmployeeForm(request.POST, instance=employee)
+        if form.is_valid():
+            employee = form.save()
+            messages.success(request, f'Employee {employee.user.get_full_name()} updated successfully.')
+            return redirect('erp:employee_detail', employee_id=employee.id)
+    else:
+        form = EmployeeForm(instance=employee)
+
+    context = {
+        'form': form,
+        'employee': employee,
+        'title': 'Edit Employee'
+    }
+    return render(request, 'erp/hr/employee_form.html', context)
 
 @login_required
 def employee_delete(request, employee_id):
@@ -1286,3 +1344,421 @@ def sales_order_edit(request, order_id):
 def financial_reports(request):
     """View for displaying financial reports page."""
     return render(request, 'erp/finance/financial_reports.html')
+
+
+# ==============================================
+# LEAD & EMAIL INQUIRY MANAGEMENT VIEWS
+# ==============================================
+
+@login_required
+def lead_list(request):
+    """Display list of all leads with filtering"""
+    from .forms import LeadSearchForm
+    from .models import Lead
+
+    leads = Lead.objects.all().select_related('assigned_to', 'converted_to_customer')
+
+    # Apply filters
+    form = LeadSearchForm(request.GET)
+    if form.is_valid():
+        if form.cleaned_data.get('search'):
+            search = form.cleaned_data['search']
+            leads = leads.filter(
+                Q(name__icontains=search) |
+                Q(email__icontains=search) |
+                Q(company__icontains=search) |
+                Q(subject__icontains=search)
+            )
+
+        if form.cleaned_data.get('status'):
+            leads = leads.filter(status=form.cleaned_data['status'])
+
+        if form.cleaned_data.get('source'):
+            leads = leads.filter(source=form.cleaned_data['source'])
+
+        if form.cleaned_data.get('priority'):
+            leads = leads.filter(priority=form.cleaned_data['priority'])
+
+        if form.cleaned_data.get('assigned_to'):
+            leads = leads.filter(assigned_to=form.cleaned_data['assigned_to'])
+
+        if form.cleaned_data.get('date_from'):
+            leads = leads.filter(created_at__date__gte=form.cleaned_data['date_from'])
+
+        if form.cleaned_data.get('date_to'):
+            leads = leads.filter(created_at__date__lte=form.cleaned_data['date_to'])
+
+    # Paginate results
+    paginator = Paginator(leads, 20)
+    page = request.GET.get('page')
+    leads = paginator.get_page(page)
+
+    # Statistics
+    stats = {
+        'total': Lead.objects.count(),
+        'new': Lead.objects.filter(status='new').count(),
+        'qualified': Lead.objects.filter(status='qualified').count(),
+        'won': Lead.objects.filter(status='won').count(),
+    }
+
+    context = {
+        'leads': leads,
+        'form': form,
+        'stats': stats,
+    }
+    return render(request, 'erp/leads/lead_list.html', context)
+
+
+@login_required
+def lead_create(request):
+    """Create a new lead"""
+    from .forms import LeadForm
+
+    if request.method == 'POST':
+        form = LeadForm(request.POST)
+        if form.is_valid():
+            lead = form.save(commit=False)
+            lead.created_by = request.user
+            lead.save()
+            form.save_m2m()  # Save many-to-many relationships
+            messages.success(request, f'Lead {lead.lead_number} created successfully!')
+            return redirect('erp:lead_detail', lead_id=lead.id)
+    else:
+        form = LeadForm()
+
+    context = {
+        'form': form,
+        'title': 'Create New Lead',
+    }
+    return render(request, 'erp/leads/lead_form.html', context)
+
+
+@login_required
+def lead_detail(request, lead_id):
+    """Display lead details with notes and conversion options"""
+    from .models import Lead
+    from .forms import LeadNoteForm
+
+    lead = get_object_or_404(Lead, id=lead_id)
+    notes = lead.notes.all().select_related('created_by')
+
+    # Handle note submission
+    if request.method == 'POST' and 'add_note' in request.POST:
+        note_form = LeadNoteForm(request.POST)
+        if note_form.is_valid():
+            note = note_form.save(commit=False)
+            note.lead = lead
+            note.created_by = request.user
+            note.save()
+            messages.success(request, 'Note added successfully!')
+            return redirect('erp:lead_detail', lead_id=lead.id)
+    else:
+        note_form = LeadNoteForm()
+
+    context = {
+        'lead': lead,
+        'notes': notes,
+        'note_form': note_form,
+    }
+    return render(request, 'erp/leads/lead_detail.html', context)
+
+
+@login_required
+def lead_edit(request, lead_id):
+    """Edit an existing lead"""
+    from .models import Lead
+    from .forms import LeadForm
+
+    lead = get_object_or_404(Lead, id=lead_id)
+
+    if request.method == 'POST':
+        form = LeadForm(request.POST, instance=lead)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Lead {lead.lead_number} updated successfully!')
+            return redirect('erp:lead_detail', lead_id=lead.id)
+    else:
+        form = LeadForm(instance=lead)
+
+    context = {
+        'form': form,
+        'lead': lead,
+        'title': f'Edit Lead {lead.lead_number}',
+    }
+    return render(request, 'erp/leads/lead_form.html', context)
+
+
+@login_required
+def lead_convert(request, lead_id):
+    """Convert lead to customer"""
+    from .models import Lead
+    from .forms import LeadConversionForm
+
+    lead = get_object_or_404(Lead, id=lead_id)
+
+    if lead.converted_to_customer:
+        messages.warning(request, 'This lead has already been converted to a customer.')
+        return redirect('erp:lead_detail', lead_id=lead.id)
+
+    if request.method == 'POST':
+        form = LeadConversionForm(request.POST)
+        if form.is_valid():
+            # Convert lead to customer
+            customer = lead.convert_to_customer(user=request.user)
+
+            # Optionally create sales order
+            if form.cleaned_data.get('create_sales_order'):
+                # Generate order number
+                count = SalesOrder.objects.count() + 1
+                order_number = f"{count:06d}"
+
+                sales_order = SalesOrder.objects.create(
+                    order_number=order_number,
+                    customer=customer,
+                    status='draft',
+                    notes=f"Converted from lead {lead.lead_number}",
+                    created_by=request.user
+                )
+                lead.converted_to_sales_order = sales_order
+                lead.save()
+
+                messages.success(
+                    request,
+                    f'Lead converted successfully! Customer {customer.customer_code} and Sales Order {sales_order.order_number} created.'
+                )
+                return redirect('erp:sales_order_detail', order_id=sales_order.id)
+
+            messages.success(request, f'Lead converted successfully! Customer {customer.customer_code} created.')
+            return redirect('erp:customer_detail', customer_id=customer.id)
+    else:
+        form = LeadConversionForm()
+
+    context = {
+        'form': form,
+        'lead': lead,
+    }
+    return render(request, 'erp/leads/lead_convert.html', context)
+
+
+@login_required
+def email_inquiry_list(request):
+    """Display list of email inquiries"""
+    from .models import EmailInquiry
+
+    inquiries = EmailInquiry.objects.all().select_related('processed_to_lead', 'processed_by')
+
+    # Filter by status
+    status = request.GET.get('status')
+    if status:
+        inquiries = inquiries.filter(status=status)
+
+    # Paginate
+    paginator = Paginator(inquiries, 20)
+    page = request.GET.get('page')
+    inquiries = paginator.get_page(page)
+
+    # Statistics
+    stats = {
+        'pending': EmailInquiry.objects.filter(status='pending').count(),
+        'processed': EmailInquiry.objects.filter(status='processed').count(),
+        'spam': EmailInquiry.objects.filter(status='spam').count(),
+    }
+
+    context = {
+        'inquiries': inquiries,
+        'stats': stats,
+        'current_status': status,
+    }
+    return render(request, 'erp/leads/email_inquiry_list.html', context)
+
+
+@login_required
+def email_inquiry_detail(request, inquiry_id):
+    """Display email inquiry details and process to lead"""
+    from .models import EmailInquiry
+
+    inquiry = get_object_or_404(EmailInquiry, id=inquiry_id)
+
+    context = {
+        'inquiry': inquiry,
+    }
+    return render(request, 'erp/leads/email_inquiry_detail.html', context)
+
+
+@login_required
+def email_inquiry_process(request, inquiry_id):
+    """Process email inquiry to lead"""
+    from .models import EmailInquiry
+
+    inquiry = get_object_or_404(EmailInquiry, id=inquiry_id)
+
+    if inquiry.status == 'processed':
+        messages.warning(request, 'This inquiry has already been processed.')
+        return redirect('erp:lead_detail', lead_id=inquiry.processed_to_lead.id)
+
+    # Process to lead
+    lead = inquiry.process_to_lead(user=request.user)
+    messages.success(request, f'Email inquiry processed to lead {lead.lead_number}!')
+
+    return redirect('erp:lead_detail', lead_id=lead.id)
+
+
+@login_required
+def email_inquiry_mark_spam(request, inquiry_id):
+    """Mark email inquiry as spam"""
+    from .models import EmailInquiry
+
+    inquiry = get_object_or_404(EmailInquiry, id=inquiry_id)
+    inquiry.status = 'spam'
+    inquiry.save()
+
+    messages.success(request, 'Email inquiry marked as spam.')
+    return redirect('erp:email_inquiry_list')
+
+
+# API Endpoint for Email Integration (Webhook)
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+def api_email_webhook(request):
+    """
+    API endpoint for receiving emails from external services
+    (e.g., SendGrid, Mailgun, Zapier, Make.com)
+
+    Example payload:
+    {
+        "from_email": "customer@example.com",
+        "from_name": "John Doe",
+        "subject": "Product Inquiry",
+        "body": "I'm interested in your products...",
+        "received_at": "2025-10-13T10:30:00Z"
+    }
+    """
+    from .models import EmailInquiry
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Only POST requests allowed'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+
+        # Create email inquiry
+        inquiry = EmailInquiry.objects.create(
+            from_email=data.get('from_email'),
+            from_name=data.get('from_name', ''),
+            subject=data.get('subject', 'No Subject'),
+            body=data.get('body', ''),
+            body_html=data.get('body_html', ''),
+            message_id=data.get('message_id', f"webhook-{timezone.now().timestamp()}"),
+            in_reply_to=data.get('in_reply_to', ''),
+            received_at=data.get('received_at', timezone.now()),
+            attachments=data.get('attachments', []),
+            raw_email=json.dumps(data),
+            status='pending'
+        )
+
+        return JsonResponse({
+            'success': True,
+            'inquiry_id': str(inquiry.id),
+            'message': 'Email inquiry received successfully'
+        }, status=201)
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+@login_required
+def invoice_add_item(request, pk):
+    """Add an item to an invoice"""
+    invoice = get_object_or_404(Invoice, pk=pk)
+
+    if invoice.status != 'draft':
+        messages.error(request, 'Can only add items to draft invoices.')
+        return redirect('erp:invoice_detail', pk=invoice.pk)
+
+    if request.method == 'POST':
+        form = InvoiceItemForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.invoice = invoice
+
+            # Calculate line total if not provided
+            if not item.line_total:
+                item.line_total = item.quantity * item.unit_price
+
+            item.save()
+
+            # Update invoice totals
+            invoice.calculate_totals()
+            messages.success(request, 'Item added successfully.')
+            return redirect('erp:invoice_detail', pk=invoice.pk)
+    else:
+        form = InvoiceItemForm()
+
+    context = {
+        'form': form,
+        'invoice': invoice,
+        'title': 'Add Item to Invoice'
+    }
+    return render(request, 'erp/invoices/invoice_item_form.html', context)
+
+@login_required
+def invoice_edit_item(request, pk, item_id):
+    """Edit an invoice item"""
+    invoice = get_object_or_404(Invoice, pk=pk)
+    item = get_object_or_404(InvoiceItem, id=item_id, invoice=invoice)
+
+    if invoice.status != 'draft':
+        messages.error(request, 'Can only edit items in draft invoices.')
+        return redirect('erp:invoice_detail', pk=invoice.pk)
+
+    if request.method == 'POST':
+        form = InvoiceItemForm(request.POST, instance=item)
+        if form.is_valid():
+            item = form.save(commit=False)
+
+            # Recalculate line total
+            item.line_total = item.quantity * item.unit_price
+            item.save()
+
+            # Update invoice totals
+            invoice.calculate_totals()
+            messages.success(request, 'Item updated successfully.')
+            return redirect('erp:invoice_detail', pk=invoice.pk)
+    else:
+        form = InvoiceItemForm(instance=item)
+
+    context = {
+        'form': form,
+        'invoice': invoice,
+        'item': item,
+        'title': 'Edit Invoice Item'
+    }
+    return render(request, 'erp/invoices/invoice_item_form.html', context)
+
+@login_required
+def invoice_delete_item(request, pk, item_id):
+    """Delete an invoice item"""
+    invoice = get_object_or_404(Invoice, pk=pk)
+    item = get_object_or_404(InvoiceItem, id=item_id, invoice=invoice)
+
+    if invoice.status != 'draft':
+        messages.error(request, 'Can only delete items from draft invoices.')
+        return redirect('erp:invoice_detail', pk=invoice.pk)
+
+    if request.method == 'POST':
+        item.delete()
+        # Update invoice totals
+        invoice.calculate_totals()
+        messages.success(request, 'Item deleted successfully.')
+        return redirect('erp:invoice_detail', pk=invoice.pk)
+
+    context = {
+        'invoice': invoice,
+        'item': item,
+    }
+    return render(request, 'erp/invoices/invoice_item_confirm_delete.html', context)
