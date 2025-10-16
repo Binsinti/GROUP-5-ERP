@@ -232,6 +232,89 @@
                 </div>
             </div>
 
+            <!-- Inline Order Items Section -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
+                    <h3 class="text-xl font-semibold text-white flex items-center">
+                        <i class="fas fa-boxes mr-3 text-indigo-100"></i>Order Items
+                    </h3>
+                </div>
+                <div class="p-6">
+                    {{ formset.management_form }}
+
+                    <div id="items-container" class="space-y-4">
+                        {% for item_form in formset %}
+                        <div class="item-form bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div class="grid grid-cols-12 gap-4 items-start">
+                                <!-- Product -->
+                                <div class="col-span-12 md:col-span-4">
+                                    <label class="block text-sm font-bold text-gray-800 mb-2">Product</label>
+                                    {{ item_form.product }}
+                                    {% if item_form.product.errors %}
+                                        <div class="mt-1 text-red-600 text-sm">{{ item_form.product.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Quantity -->
+                                <div class="col-span-6 md:col-span-2">
+                                    <label class="block text-sm font-bold text-gray-800 mb-2">Quantity</label>
+                                    {{ item_form.quantity }}
+                                    {% if item_form.quantity.errors %}
+                                        <div class="mt-1 text-red-600 text-sm">{{ item_form.quantity.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Unit Price -->
+                                <div class="col-span-6 md:col-span-2">
+                                    <label class="block text-sm font-bold text-gray-800 mb-2">Unit Price</label>
+                                    {{ item_form.unit_price }}
+                                    {% if item_form.unit_price.errors %}
+                                        <div class="mt-1 text-red-600 text-sm">{{ item_form.unit_price.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Discount % -->
+                                <div class="col-span-6 md:col-span-2">
+                                    <label class="block text-sm font-bold text-gray-800 mb-2">Discount %</label>
+                                    {{ item_form.discount_percent }}
+                                    {% if item_form.discount_percent.errors %}
+                                        <div class="mt-1 text-red-600 text-sm">{{ item_form.discount_percent.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Delete -->
+                                <div class="col-span-6 md:col-span-2 flex items-end">
+                                    <label class="block text-sm font-bold text-gray-800 mb-2 md:invisible">Delete</label>
+                                    <div class="flex items-center h-10">
+                                        {{ item_form.DELETE }}
+                                        <label for="{{ item_form.DELETE.id_for_label }}" class="ml-2 text-sm text-gray-700">Delete</label>
+                                    </div>
+                                </div>
+
+                                {{ item_form.id }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if formset.non_form_errors %}
+                        <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div class="flex items-center text-red-800">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                <span class="font-semibold">{{ formset.non_form_errors }}</span>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <span>Check "Delete" to remove an item. Items will be saved when you submit the form.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Action Buttons -->
             <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
                 <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
@@ -240,8 +323,8 @@
                             <i class="fas fa-info-circle"></i>
                         </div>
                         <div>
-                            <p class="text-sm font-medium">Update Order</p>
-                            <p class="text-xs text-gray-600">Changes will be saved to the purchase order</p>
+                            <p class="text-sm font-medium">Update Order & Items</p>
+                            <p class="text-xs text-gray-600">All changes will be saved including items</p>
                         </div>
                     </div>
                     <div class="flex space-x-4">
@@ -257,117 +340,6 @@
                 </div>
             </div>
         </form>
-
-        <!-- Order Items Section -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden mt-8">
-            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-xl font-semibold text-white flex items-center">
-                        <i class="fas fa-boxes mr-3 text-indigo-100"></i>Order Items ({{ order.items.count }})
-                    </h3>
-                    <a href="{% url 'erp:purchase_order_add_item' order_id=order.id %}"
-                       class="inline-flex items-center px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-all duration-200 font-semibold">
-                        <i class="fas fa-plus mr-2"></i>Add Item
-                    </a>
-                </div>
-            </div>
-            <div class="p-6">
-                {% if order.items.all %}
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Line Total</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            {% for item in order.items.all %}
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-box text-purple-600"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">{{ item.product.name }}</div>
-                                            <div class="text-sm text-gray-500">SKU: {{ item.product.sku }}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm font-medium text-gray-900">{{ item.quantity }}</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm text-gray-900">${{ item.unit_price|floatformat:2 }}</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm text-orange-600">{{ item.discount_percent }}%</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm font-bold text-green-600">${{ item.line_total|floatformat:2 }}</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-3">
-                                        <a href="{% url 'erp:purchase_order_edit_item' order_id=order.id item_id=item.id %}"
-                                           class="text-blue-600 hover:text-blue-900 transition-colors"
-                                           title="Edit Item">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="{% url 'erp:purchase_order_delete_item' order_id=order.id item_id=item.id %}"
-                                           class="text-red-600 hover:text-red-900 transition-colors"
-                                           onclick="return confirm('Are you sure you want to delete this item?')"
-                                           title="Delete Item">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot class="bg-gray-50">
-                            <tr>
-                                <td colspan="4" class="px-6 py-4 text-right font-semibold text-gray-700">Subtotal:</td>
-                                <td class="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">${{ order.subtotal|floatformat:2 }}</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td colspan="4" class="px-6 py-4 text-right font-semibold text-gray-700">Discount ({{ order.discount_percent }}%):</td>
-                                <td class="px-6 py-4 whitespace-nowrap font-semibold text-orange-600">-${{ order.discount_amount|floatformat:2 }}</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td colspan="4" class="px-6 py-4 text-right font-semibold text-gray-700">Tax ({{ order.tax_rate }}%):</td>
-                                <td class="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">${{ order.tax_amount|floatformat:2 }}</td>
-                                <td></td>
-                            </tr>
-                            <tr class="bg-gray-100">
-                                <td colspan="4" class="px-6 py-4 text-right font-bold text-gray-900 text-lg">Total Amount:</td>
-                                <td class="px-6 py-4 whitespace-nowrap font-bold text-green-600 text-lg">${{ order.total_amount|floatformat:2 }}</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-12">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                        <i class="fas fa-box-open text-gray-400 text-2xl"></i>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No items added yet</h3>
-                    <p class="text-gray-500 mb-6">Add products to this purchase order to get started</p>
-                    <a href="{% url 'erp:purchase_order_add_item' order_id=order.id %}"
-                       class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg">
-                        <i class="fas fa-plus mr-2"></i>Add Your First Item
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}

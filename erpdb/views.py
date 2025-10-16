@@ -766,15 +766,20 @@ def purchase_order_edit(request, order_id):
 
     if request.method == 'POST':
         form = PurchaseOrderForm(request.POST, instance=order)
-        if form.is_valid():
+        formset = PurchaseOrderItemFormSet(request.POST, instance=order)
+
+        if form.is_valid() and formset.is_valid():
             order = form.save()
+            formset.save()
             messages.success(request, f'Purchase Order {order.po_number} updated successfully.')
             return redirect('erp:purchase_order_detail', order_id=order.id)
     else:
         form = PurchaseOrderForm(instance=order)
+        formset = PurchaseOrderItemFormSet(instance=order)
 
     context = {
         'form': form,
+        'formset': formset,
         'order': order,
         'title': f'Edit Purchase Order {order.po_number}'
     }
@@ -1758,8 +1763,7 @@ def lead_convert(request, lead_id):
             # Optionally create sales order
             if form.cleaned_data.get('create_sales_order'):
                 # Generate order number
-                count = SalesOrder.objects.count() + 1
-                order_number = f"{count:06d}"
+                order_number = f"SO{SalesOrder.objects.count() + 1:06d}"
 
                 sales_order = SalesOrder.objects.create(
                     order_number=order_number,
@@ -2069,12 +2073,9 @@ Total Amount: ${invoice.total_amount}
 Amount Paid: ${invoice.paid_amount}
 Balance Due: ${invoice.balance_due}
 
-"""
-        if custom_message:
-            body += f"\nAdditional Message:\n{custom_message}\n\n"
+Please make the payment by the due date to avoid any late fees.
 
-        body += f"""
-Payment Terms: {invoice.customer.payment_terms if invoice.customer else 'Net 30'}
+{custom_message}
 
 Thank you for your business!
 
