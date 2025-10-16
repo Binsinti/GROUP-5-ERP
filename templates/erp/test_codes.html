@@ -1,0 +1,37 @@
+{% extends 'erp/base.html' %}
+
+{% block title %}Test Auto-Generated Codes{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+    <h2 class="text-2xl font-bold mb-4">Auto-Generated Code Test Results</h2>
+    <p class="text-gray-600 mb-4">Current Date: {{ current_date }}</p>
+
+    <div class="space-y-6">
+        <!-- Customer -->
+        <div class="border-l-4 border-blue-500 pl-4">
+            <h3 class="text-lg font-semibold mb-2">Customer</h3>
+            <p>Name: {{ customer.name }}</p>
+            <p>Generated Code: <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ customer.customer_code }}</span></p>
+            <p class="text-sm text-gray-500">Expected format: CYYMM#### (e.g., C2510001)</p>
+        </div>
+
+        <!-- Vendor -->
+        <div class="border-l-4 border-green-500 pl-4">
+            <h3 class="text-lg font-semibold mb-2">Vendor</h3>
+            <p>Name: {{ vendor.name }}</p>
+            <p>Generated Code: <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ vendor.vendor_code }}</span></p>
+            <p class="text-sm text-gray-500">Expected format: VYYMM#### (e.g., V2510001)</p>
+        </div>
+
+        <!-- Product -->
+        <div class="border-l-4 border-purple-500 pl-4">
+            <h3 class="text-lg font-semibold mb-2">Product</h3>
+            <p>Name: {{ product.name }}</p>
+            <p>Category: {{ product.category.name }}</p>
+            <p>Generated SKU: <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ product.sku }}</span></p>
+            <p class="text-sm text-gray-500">Expected format: CCYYMM#### (e.g., EL2510001)</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

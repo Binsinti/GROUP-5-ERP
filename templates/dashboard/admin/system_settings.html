@@ -1,0 +1,137 @@
+                        Save General Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Email Settings -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">Email Settings</h2>
+        </div>
+        <div class="p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <div>
+                    <label for="smtp_host" class="block text-sm font-medium text-gray-700">SMTP Host</label>
+                    <input type="text" name="smtp_host" id="smtp_host" value="smtp.litework.com"
+                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label for="smtp_port" class="block text-sm font-medium text-gray-700">SMTP Port</label>
+                    <input type="text" name="smtp_port" id="smtp_port" value="587"
+                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label for="smtp_user" class="block text-sm font-medium text-gray-700">SMTP Username</label>
+                    <input type="text" name="smtp_user" id="smtp_user" value="notifications@litework.com"
+                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label for="smtp_password" class="block text-sm font-medium text-gray-700">SMTP Password</label>
+                    <input type="password" name="smtp_password" id="smtp_password" value="********"
+                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" name="smtp_tls" id="smtp_tls" checked
+                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="smtp_tls" class="ml-2 block text-sm text-gray-700">Use TLS</label>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Save Email Settings
+                    </button>
+                    <button type="button" class="ml-3 inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Test Connection
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Backup & Maintenance -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">Backup & Maintenance</h2>
+        </div>
+        <div class="p-6 space-y-6">
+            <div>
+                <h3 class="text-lg font-medium text-gray-800 mb-3">Database Backup</h3>
+                <p class="text-sm text-gray-600 mb-4">Create a backup of the entire database. The backup file will be available for download.</p>
+                <button type="button" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Create Backup
+                </button>
+            </div>
+
+            <div class="border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-medium text-gray-800 mb-3">System Maintenance</h3>
+                <p class="text-sm text-gray-600 mb-4">Clear cache and optimize database tables for better performance.</p>
+                <div class="flex space-x-3">
+                    <button type="button" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Clear Cache
+                    </button>
+                    <button type="button" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Optimize Database
+                    </button>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-medium text-gray-800 mb-3">Reset Demo Data</h3>
+                <p class="text-sm text-gray-600 mb-4">Reset the system with fresh demo data. <span class="text-red-600 font-medium">Warning: This will remove all current data!</span></p>
+                <button type="button" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    Reset Demo Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% extends "dashboard/admin/base_admin.html" %}
+
+{% block title %}System Settings{% endblock %}
+{% block header %}System Settings{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- General Settings -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">General Settings</h2>
+        </div>
+        <div class="p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <div>
+                    <label for="company_name" class="block text-sm font-medium text-gray-700">Company Name</label>
+                    <input type="text" name="company_name" id="company_name" value="Lite Work ERP"
+                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label for="system_email" class="block text-sm font-medium text-gray-700">System Email</label>
+                    <input type="email" name="system_email" id="system_email" value="system@litework.com"
+                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label for="timezone" class="block text-sm font-medium text-gray-700">Default Timezone</label>
+                    <select name="timezone" id="timezone"
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="UTC" selected>UTC</option>
+                        <option value="Asia/Manila">Asia/Manila</option>
+                        <option value="America/New_York">America/New_York</option>
+                        <option value="Europe/London">Europe/London</option>
+                    </select>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
