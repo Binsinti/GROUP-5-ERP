@@ -47,10 +47,52 @@ class ProductForm(forms.ModelForm):
             'dimensions', 'barcode'
         ]
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
-            'unit_price': forms.NumberInput(attrs={'step': '0.01'}),
-            'cost_price': forms.NumberInput(attrs={'step': '0.01'}),
-            'weight': forms.NumberInput(attrs={'step': '0.01'}),
+            'sku': forms.TextInput(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+                'placeholder': 'SKU'
+            }),
+            'name': forms.TextInput(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+                'placeholder': 'Product Name'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+            }),
+            'product_type': forms.Select(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+            }),
+            'unit_price': forms.NumberInput(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+                'placeholder': 'Unit Price',
+                'step': '0.01'
+            }),
+            'cost_price': forms.NumberInput(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+                'placeholder': 'Cost Price',
+                'step': '0.01'
+            }),
+            'unit_of_measure': forms.TextInput(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+                'placeholder': 'Unit of Measure'
+            }),
+            'weight': forms.NumberInput(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+                'placeholder': 'Weight',
+                'step': '0.01'
+            }),
+            'dimensions': forms.TextInput(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+                'placeholder': 'Dimensions'
+            }),
+            'barcode': forms.TextInput(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+                'placeholder': 'Barcode'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full',
+                'placeholder': 'Description',
+                'rows': 3
+            }),
         }
 
 # Sales Order Forms
@@ -149,11 +191,22 @@ class PurchaseOrderForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add CSS classes for better styling
-        self.fields['vendor'].widget.attrs.update({'class': 'form-select'})
-        self.fields['warehouse'].widget.attrs.update({'class': 'form-select'})
-        self.fields['status'].widget.attrs.update({'class': 'form-select'})
-        self.fields['notes'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Add any special instructions...'})
+        dark_classes = 'bg-[#2d3748] dark:bg-[#2d3748] text-gray-100 dark:text-gray-100 border-gray-500 dark:border-gray-500 placeholder:text-gray-300 dark:placeholder:text-gray-300 px-4 py-2'
+        # Vendor (select)
+        self.fields['vendor'].widget.attrs.update({'class': f'mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {dark_classes}'})
+        # Warehouse (select)
+        self.fields['warehouse'].widget.attrs.update({'class': f'mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {dark_classes}'})
+        # Delivery Date (input)
+        self.fields['delivery_date'].widget.attrs.update({'class': f'mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {dark_classes}', 'placeholder': 'YYYY-MM-DD HH:mm'})
+        # Status (select with choices)
+        self.fields['status'].widget = forms.Select(choices=[('', 'Select status')] + list(getattr(PurchaseOrder, 'STATUS_CHOICES', [])))
+        self.fields['status'].widget.attrs.update({'class': f'mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {dark_classes}'})
+        # Payment Terms (input)
+        self.fields['payment_terms'].widget.attrs.update({'class': f'mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {dark_classes}'})
+        # Reference Number (input)
+        self.fields['reference_number'].widget.attrs.update({'class': f'mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {dark_classes}'})
+        # Notes (textarea)
+        self.fields['notes'].widget.attrs.update({'class': f'mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {dark_classes}', 'placeholder': 'Add any special instructions...'})
 
 # Purchase Order Item Forms
 class PurchaseOrderItemForm(forms.ModelForm):
@@ -467,16 +520,28 @@ class ProductSearchForm(forms.Form):
     search = forms.CharField(
         max_length=100,
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Search products...'})
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Search products...',
+            'class': 'bg-gray-800 text-white placeholder-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-inner',
+            'style': 'background-color:#2d3748;color:#ffffff;border-color:#4b5563;',
+        })
     )
     category = forms.ModelChoiceField(
         queryset=Category.objects.all(),
         required=False,
-        empty_label="All Categories"
+        empty_label="All Categories",
+        widget=forms.Select(attrs={
+            'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+            'style': 'background-color:#2d3748;color:#ffffff;border-color:#4b5563;',
+        })
     )
     product_type = forms.ChoiceField(
         choices=[('', 'All Types')] + Product.PRODUCT_TYPE_CHOICES,
-        required=False
+        required=False,
+        widget=forms.Select(attrs={
+            'class': 'bg-gray-800 text-white font-bold border border-gray-600 rounded-md px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+            'style': 'background-color:#2d3748;color:#ffffff;border-color:#4b5563;',
+        })
     )
 
 class SalesOrderSearchForm(forms.Form):
