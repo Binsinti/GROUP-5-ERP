@@ -7,13 +7,49 @@
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
     .message-card:hover {
-        background-color: #f0f4f7;
+        background-color: #e5e7eb;
     }
     .dark .message-card:hover {
-        background-color: #374151;
+        background-color: #4b5563;
     }
     .message-card {
         cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    /* Ensure text is always visible */
+    .message-card h4 {
+        color: #111827 !important;
+    }
+    .dark .message-card h4 {
+        color: #f9fafb !important;
+    }
+    .message-card p {
+        color: #6b7280 !important;
+    }
+    .dark .message-card p {
+        color: #d1d5db !important;
+    }
+    .message-card .text-xs {
+        color: #9ca3af !important;
+    }
+    .dark .message-card .text-xs {
+        color: #9ca3af !important;
+    }
+    /* Fix bottom buttons visibility */
+    .bottom-action-btn {
+        background-color: #3b82f6 !important;
+        color: white !important;
+        font-weight: 500 !important;
+    }
+    .bottom-action-btn:hover {
+        background-color: #2563eb !important;
+    }
+    .dark .bottom-action-btn {
+        background-color: #3b82f6 !important;
+        color: white !important;
+    }
+    .dark .bottom-action-btn:hover {
+        background-color: #2563eb !important;
     }
     /* Modal animations */
     .modal-backdrop {
@@ -96,7 +132,7 @@
             <div class="flex-grow overflow-y-auto space-y-2">
                 {% if emails %}
                     {% for email in emails %}
-                        <div class="message-card p-4 {% if not email.is_read and email.recipient == request.user %}bg-blue-50 dark:bg-blue-900/30{% else %}bg-gray-100 dark:bg-gray-700{% endif %} rounded-xl flex"
+                        <div class="message-card p-4 {% if not email.is_read and email.recipient == request.user %}bg-blue-50 dark:bg-blue-900/20{% else %}bg-white dark:bg-gray-700{% endif %} rounded-xl flex border border-gray-200 dark:border-gray-600"
                              data-id="{{ email.id }}"
                              data-subject="{{ email.subject|escapejs }}"
                              data-from="{% if current_folder == 'sent' %}To: {{ email.recipient_email|escapejs }}{% else %}{{ email.sender_email|escapejs }}{% endif %}"
@@ -104,7 +140,7 @@
                              data-body="{{ email.body|escapejs }}"
                              onclick="selectEmailFromDiv(this)"
                         >
-                            <div class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-xl text-gray-600 dark:text-gray-300">
+                            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-xl text-blue-600 dark:text-blue-300">
                                 {% if email.is_starred %}
                                     <i class="fas fa-star text-yellow-500"></i>
                                 {% else %}
@@ -112,18 +148,18 @@
                                 {% endif %}
                             </div>
                             <div class="flex-grow ml-3">
-                                <h4 class="font-semibold text-sm text-gray-900 dark:text-white">
+                                <h4 class="font-semibold text-sm">
                                     {% if current_folder == 'sent' %}
                                         To: {{ email.recipient_email|truncatechars:40 }}
                                     {% else %}
                                         {{ email.sender_email|truncatechars:40 }}
                                     {% endif %}
                                 </h4>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ email.subject|truncatechars:60 }}</p>
+                                <p class="text-sm truncate">{{ email.subject|truncatechars:60 }}</p>
                                 <div class="flex justify-between items-center">
-                                    <p class="text-xs text-gray-400 dark:text-gray-500">{{ email.created_at|timesince }} ago</p>
+                                    <p class="text-xs">{{ email.created_at|timesince }} ago</p>
                                     {% if email.attachments.count > 0 %}
-                                        <i class="fas fa-paperclip text-xs text-gray-400 dark:text-gray-500"></i>
+                                        <i class="fas fa-paperclip text-xs"></i>
                                     {% endif %}
                                 </div>
                             </div>
@@ -140,12 +176,12 @@
             <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <form action="{% url 'fetch_external_emails' %}" method="post">
                     {% csrf_token %}
-                    <button type="submit" class="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 rounded-full transition-colors mb-2">
+                    <button type="submit" class="bottom-action-btn w-full py-2 px-4 rounded-full transition-colors mb-2">
                         <i class="fas fa-sync-alt mr-2"></i>Sync External Emails
                     </button>
                 </form>
 
-                <a href="{% url 'email_settings' %}" class="block text-center bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 rounded-full transition-colors">
+                <a href="{% url 'email_settings' %}" class="bottom-action-btn block text-center py-2 px-4 rounded-full transition-colors">
                     <i class="fas fa-cog mr-2"></i>Email Settings
                 </a>
             </div>
@@ -309,7 +345,18 @@
         const subject = div.getAttribute('data-subject');
         const from = div.getAttribute('data-from');
         const date = div.getAttribute('data-date');
-        const body = div.getAttribute('data-body');
+        let body = div.getAttribute('data-body');
+
+        // Decode escaped characters
+        body = body.replace(/\\u000D\\u000A/g, '\n')  // Windows line breaks
+                   .replace(/\\u000A/g, '\n')        // Unix line breaks
+                   .replace(/\\u000D/g, '\n')        // Old Mac line breaks
+                   .replace(/\\u0027/g, "'")         // Single quotes
+                   .replace(/\\u0022/g, '"')         // Double quotes
+                   .replace(/\\n/g, '\n')            // Literal \n
+                   .replace(/\\r\\n/g, '\n')         // Literal \r\n
+                   .replace(/\\r/g, '\n')            // Literal \r
+                   .replace(/\\t/g, '\t');           // Tabs
 
         // Show email details
         document.getElementById('emptyState').classList.add('hidden');
